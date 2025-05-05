@@ -29,7 +29,7 @@ export interface IUserCreate {
 const baseURL = import.meta.env.VITE_BACKEND_URL;
 
 class AuthStore {
-  user = {};
+  user: IUserRead | null = null;
   isAuthenticated: boolean = false;
   access_token: string = "";
 

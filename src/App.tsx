@@ -15,6 +15,7 @@ import { ProtectedRoute } from "./components/PretectedRoute";
 import "./App.css";
 import Layout from "./components/layout/layout";
 import RegisterPage from "./pages/RegisterPage";
+import AdminPage from "./pages/AdminPage";
 
 const App = observer(() => {
   const authStore = AuthStore.use();
@@ -44,6 +45,14 @@ const App = observer(() => {
             element={
               <ProtectedRoute>
                 <CalendarPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute isAdminRoute={true}>
+                <AdminPage />
               </ProtectedRoute>
             }
           />

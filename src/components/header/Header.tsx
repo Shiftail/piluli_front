@@ -1,8 +1,9 @@
+import { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { Link } from "react-router-dom";
+import { LogOut } from "lucide-react";
 import { AuthStore } from "../../stores/AuthStore";
 import "./Header.css";
-import { useEffect, useRef, useState } from "react";
 
 export const Header = observer(() => {
   const authStore = AuthStore.use();
@@ -82,6 +83,17 @@ export const Header = observer(() => {
                 Профиль
               </Link>
             </li>
+            {authStore.user.is_superuser && (
+              <li className="max-lg:border-b max-lg:border-gray-300 max-lg:py-3 px-3">
+                <Link
+                  to="/admin"
+                  className="hover:text-blue-700 text-slate-900 block font-medium text-[15px]"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Админ панель
+                </Link>
+              </li>
+            )}
           </ul>
         </div>
 
@@ -92,8 +104,9 @@ export const Header = observer(() => {
 
           <button
             onClick={() => authStore.logout()}
-            className="px-4 py-2 cursor-pointer text-sm rounded-full font-medium tracking-wide text-slate-900 border border-gray-400 bg-transparent hover:bg-gray-50 transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 transition transform hover:scale-105"
           >
+            <LogOut size={18} />
             Выйти
           </button>
 
