@@ -1,46 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AuthStore } from "../stores/AuthStore";
+import { DrugStore } from "../stores/DrugStore";
+import type { Drug } from "../stores/DrugStore";
 import AdminControls from "../components/adminControls/AdminControls";
-interface Drug {
-  id: string;
-  name: string;
-  dosage: number;
-  frequency: number;
-  interval: number;
-  description: string;
-}
-
-export const mockDrugs: Drug[] = [
-  {
-    id: "1",
-    name: "Ибупрофен",
-    dosage: 200,
-    frequency: 3,
-    interval: 8,
-    description: "Обезболивающее и противовоспалительное средство",
-  },
-  {
-    id: "2",
-    name: "Парацетамол",
-    dosage: 500,
-    frequency: 2,
-    interval: 12,
-    description: "Жаропонижающее средство",
-  },
-  {
-    id: "3",
-    name: "Амоксициллин",
-    dosage: 250,
-    frequency: 3,
-    interval: 8,
-    description: "Антибиотик широкого спектра действия",
-  },
-];
 
 const AdminPage = () => {
   const authStore = AuthStore.use();
-
+  const drugStore = DrugStore.use();
   const [showModal, setShowModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [drugs, setDrugs] = useState<Drug[]>([]);
@@ -99,7 +66,7 @@ const AdminPage = () => {
   };
 
   useEffect(() => {
-    setDrugs(mockDrugs);
+    setDrugs(drugStore.drugs);
   }, []);
 
   return (
