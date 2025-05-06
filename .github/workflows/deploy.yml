@@ -48,6 +48,11 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
+      - name: Add remote host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan time-inside.ru >> ~/.ssh/known_hosts
+
       - name: Deploy to server
         run: |
           rsync -avz dist/ ${{ secrets.SERVER_ADDRESS }}:${{ secrets.SSH_DIR }}
