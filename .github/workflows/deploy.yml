@@ -56,6 +56,6 @@ jobs:
       - name: Upload build via SCP
         run: |
           scp -r dist/* ${{ secrets.SERVER_ADDRESS}}:${{ secrets.SSH_DIR }}
-          ssh -o StrictHostKeyChecking=no user@your.server.ip  cd /opt/piluli/deploy && docker-compose up -d --no-deps --force-recreate nginx
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_ADDRESS}}  cd /opt/piluli/deploy && docker-compose up -d --no-deps --force-recreate nginx
       
 
