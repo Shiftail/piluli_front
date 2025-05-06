@@ -55,5 +55,5 @@ jobs:
 
       - name: Upload build via SCP
         run: |
-          scp -r dist/* ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_TARGET_DIR }}
+          scp -r dist/* ${{ secrets.SERVER_ADDRESS}}:${{ secrets.SSH_DIR }}
 
