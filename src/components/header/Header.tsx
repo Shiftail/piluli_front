@@ -83,7 +83,7 @@ export const Header = observer(() => {
                 Профиль
               </Link>
             </li>
-            {authStore.user.is_superuser && (
+            {authStore.user && authStore.user.is_superuser && (
               <li className="max-lg:border-b max-lg:border-gray-300 max-lg:py-3 px-3">
                 <Link
                   to="/admin"
@@ -99,7 +99,7 @@ export const Header = observer(() => {
 
         <div className="flex max-lg:ml-auto items-center space-x-4">
           <span className="text-sm font-medium text-slate-700 hidden sm:block">
-            {authStore.user.username}
+            {authStore.user ? authStore.user.username : ""}
           </span>
 
           <button

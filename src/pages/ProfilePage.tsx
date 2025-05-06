@@ -11,7 +11,6 @@ import React from "react";
 import { FeatherUpload } from "@subframe/core";
 import { TextField } from "../ui/components/TextField";
 import { Button } from "../ui/components/Button";
-import { Alert } from "../ui/components/Alert";
 // import { SettingsMenu } from "../ui/components/SettingsMenu";
 
 export const ProfilePage = () => {
@@ -60,7 +59,7 @@ export const ProfilePage = () => {
               >
                 <TextField.Input
                   placeholder=""
-                  value={authStore.user.username}
+                  value={authStore.user ? authStore.user.username : ""}
                   readOnly
                 />
               </TextField>
@@ -74,7 +73,9 @@ export const ProfilePage = () => {
                 <TextField.Input
                   placeholder="admin@admin.com"
                   value=""
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => {}}
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                    event;
+                  }}
                 />
               </TextField>
             </div>
@@ -93,7 +94,9 @@ export const ProfilePage = () => {
                 type="password"
                 placeholder="Введите текущий пароль"
                 value=""
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {}}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                  event;
+                }}
               />
             </TextField>
             <TextField
@@ -105,7 +108,9 @@ export const ProfilePage = () => {
                 type="password"
                 placeholder="Введите новый пароль"
                 value=""
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {}}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                  event;
+                }}
               />
             </TextField>
             <TextField className="h-auto w-full flex-none" label="" helpText="">
@@ -113,7 +118,9 @@ export const ProfilePage = () => {
                 type="password"
                 placeholder="Подтвердите новый пароль"
                 value=""
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {}}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                  event;
+                }}
               />
             </TextField>
             <TextField className="h-auto w-full flex-none" label="" helpText="">
@@ -121,38 +128,21 @@ export const ProfilePage = () => {
                 type="text"
                 placeholder="telegram id"
                 readOnly
-                value={authStore.user.tg_id}
+                value={String(authStore?.user?.tg_id || 0)}
               />
             </TextField>
             <div className="flex w-full flex-col items-start justify-center gap-6">
               <Button
                 variant="neutral-secondary"
-                onClick={(event: React.MouseEvent<HTMLButtonElement>) => {}}
+                onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                  event;
+                }}
               >
                 Изменить пароль
               </Button>
             </div>
           </div>
           <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-border" />
-          <div className="flex w-full flex-col items-start gap-6">
-            <span className="text-heading-3 font-heading-3 text-default-font">
-              Опасная зона
-            </span>
-            <Alert
-              variant="error"
-              icon={null}
-              title="Удалить аккаунт"
-              description="Перманенно удалить аккаунт. Без возможности восстановить"
-              actions={
-                <Button
-                  variant="destructive-secondary"
-                  onClick={(event: React.MouseEvent<HTMLButtonElement>) => {}}
-                >
-                  Delete account
-                </Button>
-              }
-            />
-          </div>
         </div>
       </div>
     </div>

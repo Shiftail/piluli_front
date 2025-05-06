@@ -17,7 +17,7 @@ export function ProtectedRoute({
     return <Navigate to="/login" />;
   }
   // Если это админский маршрут и пользователь не суперпользователь, перенаправляем на главную
-  if (isAdminRoute && !authStore.user.is_superuser) {
+  if (isAdminRoute && authStore.user && !authStore.user.is_superuser) {
     return <Navigate to="/calendar" />;
   }
   return <>{children}</>;
