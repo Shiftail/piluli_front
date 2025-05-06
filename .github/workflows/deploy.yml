@@ -53,8 +53,7 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H 45.83.20.56 >> ~/.ssh/known_hosts
 
-      - name: Deploy to server
+      - name: Upload build via SCP
         run: |
-          rsync -avz dist/ ${{ secrets.SERVER_ADDRESS }}:${{ secrets.SSH_DIR }}
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          scp -r dist/* ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_TARGET_DIR }}
+
