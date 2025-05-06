@@ -14,17 +14,20 @@ export interface DrugSchedule {
 }
 
 export interface Drug {
-  id: string;
   name: string;
   dosage: number;
   frequency: number;
   interval: number;
   description: string;
 }
+
+export interface DrugRead extends Drug {
+  id: string;
+}
 const baseURL = import.meta.env.VITE_BACKEND_URL;
 
 class DrugStore {
-  drugs: Drug[] = [];
+  drugs: DrugRead[] = [];
   loading: boolean = false;
   error: string | null = null;
   authStore = AuthStore.use();
@@ -37,19 +40,47 @@ class DrugStore {
     this.error = null;
     try {
       const response = await fetch(`${baseURL}/drugs`, {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${this.authStore.access_token}`,
         },
       });
-      const data = await response.json();
+      const data: DrugRead[] = await response.json();
 
       if (data) {
-        const drugs: Drug[] = [];
         runInAction(() => {
-          this.drugs = drugs;
+          this.drugs = data;
         });
       }
+    } catch (e) {
+      runInAction(() => {
+        this.error = "Ошибка при загрузке данных.";
+      });
+    } finally {
+      runInAction(() => {
+        this.loading = false;
+      });
+    }
+  }
+
+  async addDrug(drug: Drug) {
+    this.loading = true;
+    this.error = null;
+    try {
+      const response = await fetch(`${baseURL}/drugs`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.authStore.access_token}`,
+        },
+        body: JSON.stringify(drug),
+      });
+      const newDrug: DrugRead = await response.json();
+
+      runInAction(() => {
+        this.drugs.push(newDrug);
+      });
     } catch (e) {
       runInAction(() => {
         this.error = "Ошибка при загрузке данных.";

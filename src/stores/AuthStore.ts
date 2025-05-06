@@ -79,7 +79,6 @@ class AuthStore {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          "ngrok-skip-browser-warning": "69420",
         },
         body: formData.toString(),
       });
@@ -94,7 +93,6 @@ class AuthStore {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "69420",
           Authorization: `Bearer ${response.access_token}`,
         },
       });

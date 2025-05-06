@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react-lite";
 import { PlusCircle } from "lucide-react";
 import { CalendarStore } from "../../stores/CalendarStore";
 import type { DrugSchedule } from "../../stores/CalendarStore";
+import { DrugStore } from "../../stores/DrugStore";
 
 const AddScheduleModal = observer(
   ({
@@ -16,6 +17,8 @@ const AddScheduleModal = observer(
     ceil_info: Date;
   }) => {
     const calendarStore = CalendarStore.use();
+    const drugStore = DrugStore.use();
+    const [customDrug, setCustomDrug] = useState(false);
     const user = JSON.parse(sessionStorage.getItem("user") || "{}");
     const userTimeZoneOffset = (user?.time_zone || 0) * 60; // в минутах
 
@@ -41,6 +44,27 @@ const AddScheduleModal = observer(
       is_active: true,
     });
 
+    const handleSelectDrug = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const value = e.target.value;
+      if (value === "custom") {
+        setCustomDrug(true);
+        setForm({ ...form, name_drug: "" });
+      } else {
+        const selected = drugStore.drugs.find((d) => d.id === value);
+        if (selected) {
+          setCustomDrug(false);
+          setForm({
+            ...form,
+            name_drug: selected.name,
+            dosage: selected.dosage,
+            frequency: selected.frequency,
+            interval: selected.interval,
+            description: selected.description,
+          });
+        }
+      }
+    };
+
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const localDate = new Date(e.target.value);
       setForm({
@@ -65,6 +89,9 @@ const AddScheduleModal = observer(
       }
     };
 
+    useEffect(() => {
+      drugStore.fetchDrugs();
+    }, []);
     return (
       <AnimatePresence>
         {show && (
@@ -82,11 +109,37 @@ const AddScheduleModal = observer(
                     type="text"
                     placeholder="Введите название лекарства"
                     className="input"
+                    disabled={!customDrug}
                     value={form.name_drug}
                     onChange={(e) =>
                       setForm({ ...form, name_drug: e.target.value })
                     }
                   />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-sm font-medium text-gray-600">
+                    Выберите лекарство
+                  </label>
+                  <select
+                    className="input"
+                    onChange={handleSelectDrug}
+                    value={
+                      customDrug
+                        ? "custom"
+                        : drugStore.drugs.find((d) => d.name === form.name_drug)
+                            ?.id || ""
+                    }
+                  >
+                    <option value="" disabled>
+                      -- Выберите из списка --
+                    </option>
+                    {drugStore.drugs.map((drug) => (
+                      <option key={drug.id} value={drug.id}>
+                        {drug.name}
+                      </option>
+                    ))}
+                    <option value="custom">Ввести своё</option>
+                  </select>
                 </div>
 
                 <div className="flex flex-col">

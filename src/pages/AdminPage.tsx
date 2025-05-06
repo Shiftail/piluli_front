@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
+import { observer } from "mobx-react-lite";
 import { AnimatePresence, motion } from "framer-motion";
 import { AuthStore } from "../stores/AuthStore";
 import { DrugStore } from "../stores/DrugStore";
 import type { Drug } from "../stores/DrugStore";
 import AdminControls from "../components/adminControls/AdminControls";
 
-const AdminPage = () => {
+const AdminPage = observer(() => {
   const authStore = AuthStore.use();
   const drugStore = DrugStore.use();
   const [showModal, setShowModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const [drugs, setDrugs] = useState<Drug[]>([]);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<Drug>({
     name: "",
     dosage: 0,
     frequency: 0,
@@ -33,40 +33,26 @@ const AdminPage = () => {
   };
 
   const handleSubmit = async () => {
-    // try {
-    //   const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/meds`, {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //       Authorization: `Bearer ${authStore.access_token}`,
-    //     },
-    //     body: JSON.stringify(form),
-    //   });
-
-    //   if (!response.ok) {
-    //     throw new Error("Ошибка при добавлении лекарства");
-    //   }
-
-    //   const data = await response.json();
-    //   console.log("Добавлено:", data);
-    //   setShowModal(false);
-    //   setForm({
-    //     name: "",
-    //     dosage: 0,
-    //     frequency: 0,
-    //     interval: 0,
-    //     description: "",
-    //   });
-    // } catch (error) {
-    //   console.error("Ошибка:", error);
-    // }
+    try {
+      await drugStore.addDrug(form);
+      setShowModal(false);
+      setForm({
+        name: "",
+        dosage: 0,
+        frequency: 0,
+        interval: 0,
+        description: "",
+      });
+    } catch (error) {
+      console.error("Ошибка:", error);
+    }
     setSuccessMessage("Лекарство успешно добавлено!");
     setShowModal(false);
+    await drugStore.fetchDrugs();
     setTimeout(() => setSuccessMessage(""), 3000);
   };
-
   useEffect(() => {
-    setDrugs(drugStore.drugs);
+    drugStore.fetchDrugs();
   }, []);
 
   return (
@@ -90,7 +76,7 @@ const AdminPage = () => {
             </tr>
           </thead>
           <tbody>
-            {drugs.map((drug) => (
+            {drugStore.drugs.map((drug) => (
               <tr key={drug.id} className="hover:bg-gray-50">
                 <td className="px-4 py-2 border-b">{drug.name}</td>
                 <td className="px-4 py-2 border-b">{drug.dosage} мг</td>
@@ -240,6 +226,6 @@ const AdminPage = () => {
       </AnimatePresence>
     </div>
   );
-};
+});
 
 export default AdminPage;
