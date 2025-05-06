@@ -83,4 +83,17 @@
     margin: 10px 0; /* Добавляем отступ между названием и кнопками */
     font-size: 1.2rem;
   }
+
+  header {
+    margin-top: 15%;
+  }
+  header::before {
+    content: "";
+    width: 100%;
+    height: 7%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: rgb(242, 0, 0);
+  }
 }
