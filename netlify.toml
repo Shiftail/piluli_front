@@ -1,10 +1,11 @@
 [build]
-  command   = "yarn build"        # или "npm run build", в зависимости чем ты пользуешься
-  publish   = "dist"              # выходная папка Vite
-  environment = {                  # опционально: указать версию Node
-    NODE_VERSION = "22"
-  }
+  command   = "npm run build"   # или "yarn build"
+  publish   = "dist"
 
-[dev]
-  command = "vite"
-  framework = "vite"
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from    = "/*"
+  to      = "/index.html"
+  status  = 200
