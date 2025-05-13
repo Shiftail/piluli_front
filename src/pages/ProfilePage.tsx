@@ -1,20 +1,37 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import { AuthStore } from "../stores/AuthStore";
-
-import React from "react";
-// import { FeatherLock } from "@subframe/core";
-// import { FeatherBellRing } from "@subframe/core";
-// import { FeatherCreditCard } from "@subframe/core";
-// import { FeatherShapes } from "@subframe/core";
-// import { FeatherUsers } from "@subframe/core";
-import { FeatherUpload } from "@subframe/core";
 import { TextField } from "../ui/components/TextField";
 import { Button } from "../ui/components/Button";
-// import { SettingsMenu } from "../ui/components/SettingsMenu";
+import { parseInitData } from "../utils/parseInitData.ts";
 
 export const ProfilePage = () => {
   const authStore = AuthStore.use();
+  const [avatarUrl, SetAvatarUrl] = useState("");
+
+  useEffect(() => {
+    const tg = (window as any).Telegram?.WebApp;
+    if (!tg) {
+      console.warn("Telegram WebApp не найден");
+      return;
+    }
+    try {
+      tg.ready();
+      const initData = tg.initData;
+      const user = parseInitData(initData);
+      if (user?.user?.photo_url) {
+        SetAvatarUrl(user.user.photo_url);
+      } else {
+        SetAvatarUrl(
+          "https://i.fbcd.co/products/resized/resized-750-500/d4c961732ba6ec52c0bbde63c9cb9e5dd6593826ee788080599f68920224e27d.jpg",
+        );
+      }
+    } catch (e) {
+      console.error("Ошибка при инициализации Telegram WebApp:", e);
+    }
+  }, []);
+
   return (
     <div className="flex h-full w-full items-start mobile:flex-col mobile:flex-nowrap mobile:gap-0">
       <div className="container max-w-none flex grow shrink-0 basis-0 flex-col items-center gap-6 self-stretch bg-default-background py-12 shadow-sm">
@@ -35,10 +52,10 @@ export const ProfilePage = () => {
               <div className="flex items-center gap-4">
                 <img
                   className="h-16 w-16 flex-none object-cover [clip-path:circle()]"
-                  src=""
+                  src={avatarUrl}
                   alt="avatar"
                 />
-                <div className="flex flex-col items-start gap-2">
+                {/* <div className="flex flex-col items-start gap-2">
                   <Button
                     variant="neutral-secondary"
                     icon={<FeatherUpload />}
@@ -48,7 +65,7 @@ export const ProfilePage = () => {
                   >
                     Upload
                   </Button>
-                </div>
+                </div> */}
               </div>
             </div>
             <div className="flex w-full items-center gap-4">
