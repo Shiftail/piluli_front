@@ -53,11 +53,28 @@ const AdminPage = observer(() => {
   };
 
   const handleDeleteDrug = async (id: string) => {
-    if (confirm("Вы уверены, что хотите удалить это лекарство?")) {
-      await drugStore.deleteDrug(id);
-      await drugStore.fetchDrugs();
-      setSuccessMessage("Лекарство удалено!");
-      setTimeout(() => setSuccessMessage(""), 3000);
+    const tg = (window as any).Telegram?.WebApp;
+    if (tg) {
+      try {
+        (window as any).Telegram.WebApp.showConfirm(
+          "Вы уверены, что хотите удалить это лекарство?",
+          async (confirm: boolean) => {
+            if (confirm) {
+              await drugStore.deleteDrug(id);
+              await drugStore.fetchDrugs();
+              setSuccessMessage("Лекарство удалено!");
+              setTimeout(() => setSuccessMessage(""), 3000);
+            }
+          },
+        );
+      } catch (error) {
+        if (confirm("Вы уверены, что хотите удалить это лекарство?")) {
+          await drugStore.deleteDrug(id);
+          await drugStore.fetchDrugs();
+          setSuccessMessage("Лекарство удалено!");
+          setTimeout(() => setSuccessMessage(""), 3000);
+        }
+      }
     }
   };
 

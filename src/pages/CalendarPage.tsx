@@ -137,12 +137,28 @@ const CalendarPage = observer(() => {
             locale={ruLocale}
             eventClick={(info) => {
               if ((window as any).Telegram?.WebApp) {
-                (window as any).Telegram.WebApp.showAlert(
-                  "Это встроенный alert!",
-                );
+                try {
+                  (window as any).Telegram.WebApp.showAlert(
+                    `Препарат: ${
+                      info.event.title
+                    }\nВремя приема: ${info.event.start
+                      ?.toISOString()
+                      .slice(11, 16)}\nДозировка: ${
+                      info.event.extendedProps.dosage
+                    } мг`,
+                  );
+                } catch (error) {
+                  alert(
+                    `Препарат: ${
+                      info.event.title
+                    }\nВремя приема: ${info.event.start
+                      ?.toISOString()
+                      .slice(11, 16)}\nДозировка: ${
+                      info.event.extendedProps.dosage
+                    } мг`,
+                  );
+                }
               }
-
-              alert(`Дозировка приема: ${info.event.extendedProps.dosage}`);
             }}
             dateClick={(info) => {
               setSelectedDate(new Date(info.dateStr)); // сохраняем выбранную дату
