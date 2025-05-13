@@ -23,7 +23,6 @@ const CalendarPage = observer(() => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [baseMonday, setBaseMonday] = useState(new Date());
   const [isManualView, setIsManualView] = useState(false);
 
   useEffect(() => {
@@ -40,7 +39,7 @@ const CalendarPage = observer(() => {
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [calendarStore, currentView]);
+  }, [calendarStore, currentView, isManualView]);
 
   const events = calendarStore.events.map((event) => ({
     id: String(event.id),
@@ -55,7 +54,6 @@ const CalendarPage = observer(() => {
     const calendarApi = calendarRef.current?.getApi();
     if (!calendarApi) return;
 
-    const currentView = calendarApi.view.type;
     const currentDate = new Date(calendarApi.getDate());
 
     if (offset === 0) {
@@ -64,17 +62,6 @@ const CalendarPage = observer(() => {
       currentDate.setDate(currentDate.getDate() + offset * 7);
       calendarApi.gotoDate(currentDate);
     }
-
-    // Обновим baseMonday для текста "Неделя с ..."
-    const monday = getMonday(offset === 0 ? new Date() : currentDate);
-    setBaseMonday(monday);
-  };
-
-  const getMonday = (date: Date) => {
-    const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Понедельник
-    return new Date(d.setDate(diff));
   };
 
   return (
@@ -108,9 +95,7 @@ const CalendarPage = observer(() => {
                 Вперёд →
               </button>
             </div>
-            {/* <div className="text-lg font-semibold mt-5">
-              {baseMonday.toLocaleDateString("ru-RU")}
-            </div> */}
+
             <div className="flex items-center gap-2 mt-4">
               <label htmlFor="view-select" className="text-sm font-medium">
                 Вид:

@@ -85,9 +85,6 @@ class CalendarStore {
             });
           });
         });
-
-        console.log(events);
-
         runInAction(() => {
           this.events = events;
         });

@@ -31,7 +31,7 @@ export default function AuthPage() {
     } catch (e) {
       console.error("Ошибка при инициализации Telegram WebApp:", e);
     }
-  }, []);
+  }, [authStore.isAuthenticated]);
 
   const handleLogin = async () => {
     setLoading(true);
