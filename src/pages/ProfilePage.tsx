@@ -1,12 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
-
-import { AuthStore } from "../stores/AuthStore";
+import { useStores } from "../stores/useStores";
 import { parseInitData } from "../utils/parseInitData.ts";
 import { motion } from "framer-motion";
 
 export const ProfilePage = () => {
-  const authStore = AuthStore.use();
+  const { authStore } = useStores();
   const [avatarUrl, SetAvatarUrl] = useState("");
   const [email, setEmail] = useState(
     authStore.user ? authStore.user.email : "",

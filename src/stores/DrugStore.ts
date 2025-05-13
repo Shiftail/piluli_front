@@ -1,6 +1,5 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import { AuthStore } from "./AuthStore";
-
 export interface DrugSchedule {
   name_drug: string;
   dosage: number;
@@ -30,9 +29,10 @@ class DrugStore {
   drugs: DrugRead[] = [];
   loading: boolean = false;
   error: string | null = null;
-  authStore = AuthStore.use();
+  authStore: AuthStore;
 
-  constructor() {
+  constructor(authStore: AuthStore) {
+    this.authStore = authStore;
     makeAutoObservable(this);
   }
   async fetchDrugs() {
@@ -64,7 +64,7 @@ class DrugStore {
     }
   }
 
-  async addDrug(drug: Drug) {
+  addDrug = async (drug: Drug) => {
     this.loading = true;
     this.error = null;
     try {
@@ -90,12 +90,27 @@ class DrugStore {
         this.loading = false;
       });
     }
-  }
+  };
 
-  static use() {
-    return DrugStoreInstance;
-  }
+  updateDrug = async (id: string, updatedDrug: Drug) => {
+    await fetch(`${baseURL}/drugs/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.authStore.access_token}`,
+      },
+      body: JSON.stringify(updatedDrug),
+    });
+  };
+
+  deleteDrug = async (id: string) => {
+    await fetch(`${baseURL}/drugs/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${this.authStore.access_token}`,
+      },
+    });
+  };
 }
 
-const DrugStoreInstance = new DrugStore();
 export { DrugStore };

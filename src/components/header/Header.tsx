@@ -8,11 +8,11 @@ import {
   faUserCircle,
   faScrewdriverWrench,
 } from "@fortawesome/free-solid-svg-icons";
-import { AuthStore } from "../../stores/AuthStore";
+import { useStores } from "../../stores/useStores";
 import "./Header.css";
 
 export const Header = observer(() => {
-  const authStore = AuthStore.use();
+  const { authStore } = useStores();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 

@@ -27,9 +27,10 @@ class CalendarStore {
   events: CalendarEvent[] = [];
   loading: boolean = false;
   error: string | null = null;
-  authStore = AuthStore.use();
+  authStore: AuthStore;
 
-  constructor() {
+  constructor(authStore: AuthStore) {
+    this.authStore = authStore;
     makeAutoObservable(this);
   }
 
@@ -140,11 +141,6 @@ class CalendarStore {
       });
     }
   }
-
-  static use() {
-    return calendarStoreInstance;
-  }
 }
 
-const calendarStoreInstance = new CalendarStore();
 export { CalendarStore };

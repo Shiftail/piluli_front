@@ -6,8 +6,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import { AuthStore } from "./stores/AuthStore";
-import { CalendarStore } from "./stores/CalendarStore";
+import { useStores } from "./stores/useStores";
 import AuthPage from "./pages/AuthPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import CalendarPage from "./pages/CalendarPage";
@@ -18,14 +17,13 @@ import RegisterPage from "./pages/RegisterPage";
 import AdminPage from "./pages/AdminPage";
 
 const App = observer(() => {
-  const authStore = AuthStore.use();
-  const calendarStore = CalendarStore.use();
+  const { authStore, calendarStore } = useStores();
 
   useEffect(() => {
     if (authStore.isAuthenticated) {
       calendarStore.fetchEvents();
     }
-  }, [authStore.isAuthenticated]);
+  }, [authStore.isAuthenticated, calendarStore]);
 
   return (
     <Router>

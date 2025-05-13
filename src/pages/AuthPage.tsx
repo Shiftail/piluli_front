@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthStore } from "../stores/AuthStore";
+import { useStores } from "../stores/useStores.ts";
 import { parseInitData } from "../utils/parseInitData.ts";
 import { motion } from "framer-motion";
 
@@ -9,7 +9,7 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const authStore = AuthStore.use();
+  const { authStore } = useStores();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function AuthPage() {
     } catch (e) {
       console.error("Ошибка при инициализации Telegram WebApp:", e);
     }
-  }, []);
+  }, [authStore.isAuthenticated]);
 
   const handleLogin = async () => {
     setLoading(true);
@@ -40,6 +40,7 @@ export default function AuthPage() {
       navigate("/calendar");
     } catch (e) {
       setError("Ошибка авторизации");
+      console.log(JSON.stringify(e));
       setTimeout(() => setError(""), 3000);
     } finally {
       setLoading(false);

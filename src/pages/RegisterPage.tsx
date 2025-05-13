@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthStore } from "../stores/AuthStore";
 import type { IUserCreate } from "../stores/AuthStore";
+import { useStores } from "../stores/useStores";
 import { motion } from "framer-motion";
 
 const RegisterPage = () => {
-  const authStore = AuthStore.use();
+  const { authStore } = useStores();
   const navigate = useNavigate();
   const [user, setUser] = useState<IUserCreate>({
     username: "",

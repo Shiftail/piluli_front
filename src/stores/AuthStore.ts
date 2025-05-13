@@ -79,7 +79,7 @@ class AuthStore {
 
       // Проверка на наличие ошибок валидации
       if (errorData.detail) {
-        let register_errors: Record<string, string>[] = [];
+        const register_errors: Record<string, string>[] = [];
         errorData.detail.forEach((error) => {
           // Проверяем, есть ли второй элемент в loc, иначе добавляем ошибку по умолчанию
           const field = error.loc.length > 1 ? error.loc[1] : "unknown_field";
@@ -134,7 +134,7 @@ class AuthStore {
         sessionStorage.setItem("user", JSON.stringify(userResponse));
       });
     } catch (error) {
-      throw error; // пробросим для возможного UI-обработчика
+      throw new Error("Error:" + JSON.stringify(error)); // пробросим для возможного UI-обработчика
     }
   };
 
@@ -177,11 +177,6 @@ class AuthStore {
     const updatedData = await response.json();
     this.user = { ...this.user, ...updatedData };
   };
-
-  static use() {
-    return authStoreInstance;
-  }
 }
 
-const authStoreInstance = new AuthStore();
 export { AuthStore };

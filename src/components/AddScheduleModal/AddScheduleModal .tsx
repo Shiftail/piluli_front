@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react-lite";
+import { useStores } from "../../stores/useStores";
 import { PlusCircle } from "lucide-react";
-import { CalendarStore } from "../../stores/CalendarStore";
 import type { DrugSchedule } from "../../stores/CalendarStore";
-import { DrugStore } from "../../stores/DrugStore";
 
 const AddScheduleModal = observer(
   ({
@@ -16,8 +15,7 @@ const AddScheduleModal = observer(
     onClose: () => void;
     ceil_info: Date;
   }) => {
-    const calendarStore = CalendarStore.use();
-    const drugStore = DrugStore.use();
+    const { drugStore, calendarStore } = useStores();
     const [showSuggestions, setShowSuggestions] = useState(true);
     const user = JSON.parse(sessionStorage.getItem("user") || "{}");
     const userTimeZoneOffset = (user?.time_zone || 0) * 60; // в минутах
@@ -63,7 +61,6 @@ const AddScheduleModal = observer(
       });
     };
 
-    //FIXME: НЕ ПРАВИЛЬНО РАБОТАЕТ
     const handleSubmit = async () => {
       try {
         const payload = {
@@ -75,13 +72,13 @@ const AddScheduleModal = observer(
         await calendarStore.fetchEvents();
         onClose(); // Закрыть модальное окно после отправки данных
       } catch (e) {
-        alert("Ошибка при добавлении курса приёма");
+        alert("Ошибка при добавлении курса приёма" + JSON.stringify(e));
       }
     };
 
     useEffect(() => {
       drugStore.fetchDrugs();
-    }, []);
+    }, [drugStore]);
     return (
       <AnimatePresence>
         {show && (

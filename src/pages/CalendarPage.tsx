@@ -6,7 +6,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import listPlugin from "@fullcalendar/list";
 import ruLocale from "@fullcalendar/core/locales/ru";
 import { observer } from "mobx-react-lite";
-import { CalendarStore } from "../stores/CalendarStore";
+import { useStores } from "../stores/useStores";
 import AddScheduleModal from "../components/AddScheduleModal/AddScheduleModal ";
 
 const getResponsiveView = (width: number) => {
@@ -15,7 +15,7 @@ const getResponsiveView = (width: number) => {
 };
 
 const CalendarPage = observer(() => {
-  const calendarStore = CalendarStore.use();
+  const { calendarStore } = useStores();
   const calendarRef = useRef<FullCalendar | null>(null);
   const [currentView, setCurrentView] = useState(
     getResponsiveView(window.innerWidth),
@@ -136,11 +136,11 @@ const CalendarPage = observer(() => {
             locales={[ruLocale]}
             locale={ruLocale}
             eventClick={(info) => {
-              // if ((window as any).Telegram?.WebApp) {
-              //   (window as any).Telegram.WebApp.showAlert(
-              //     "Это встроенный alert!",
-              //   );
-              // }
+              if ((window as any).Telegram?.WebApp) {
+                (window as any).Telegram.WebApp.showAlert(
+                  "Это встроенный alert!",
+                );
+              }
 
               alert(`Дозировка приема: ${info.event.extendedProps.dosage}`);
             }}
