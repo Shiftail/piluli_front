@@ -23,10 +23,13 @@ const CalendarPage = observer(() => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [baseMonday, setBaseMonday] = useState(new Date());
+  const [isManualView, setIsManualView] = useState(false);
 
   useEffect(() => {
     setLoading(false); // Убери после fetchEvents, если подключишь
     const handleResize = () => {
+      if (isManualView) return;
       const newView = getResponsiveView(window.innerWidth);
       const calendarApi = calendarRef.current?.getApi();
       if (calendarApi && newView !== currentView) {
@@ -44,7 +47,35 @@ const CalendarPage = observer(() => {
     title: event.title,
     start: event.start_date,
     end: event.end_date,
+    backgroundColor: event.backgroundColor ? event.backgroundColor : undefined,
+    dosage: event.dosage,
   }));
+
+  const gotoWeek = (offset: number) => {
+    const calendarApi = calendarRef.current?.getApi();
+    if (!calendarApi) return;
+
+    const currentView = calendarApi.view.type;
+    const currentDate = new Date(calendarApi.getDate());
+
+    if (offset === 0) {
+      calendarApi.gotoDate(new Date());
+    } else {
+      currentDate.setDate(currentDate.getDate() + offset * 7);
+      calendarApi.gotoDate(currentDate);
+    }
+
+    // Обновим baseMonday для текста "Неделя с ..."
+    const monday = getMonday(offset === 0 ? new Date() : currentDate);
+    setBaseMonday(monday);
+  };
+
+  const getMonday = (date: Date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Понедельник
+    return new Date(d.setDate(diff));
+  };
 
   return (
     <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 min-h-[400px]">
@@ -54,6 +85,56 @@ const CalendarPage = observer(() => {
         </div>
       ) : (
         <>
+          {/* 👇 Кастомный тулбар */}
+          {/* Custom Toolbar */}
+          <div className="flex flex-col justify-between items-center mb-4">
+            <div className="flex gap-2">
+              <button
+                className="px-4 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                onClick={() => gotoWeek(-1)}
+              >
+                ← Назад
+              </button>
+              <button
+                className="px-4 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                onClick={() => gotoWeek(0)}
+              >
+                Сегодня
+              </button>
+              <button
+                className="px-4 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                onClick={() => gotoWeek(1)}
+              >
+                Вперёд →
+              </button>
+            </div>
+            {/* <div className="text-lg font-semibold mt-5">
+              {baseMonday.toLocaleDateString("ru-RU")}
+            </div> */}
+            <div className="flex items-center gap-2 mt-4">
+              <label htmlFor="view-select" className="text-sm font-medium">
+                Вид:
+              </label>
+              <select
+                id="view-select"
+                className="px-3 py-1 border rounded"
+                value={currentView}
+                onChange={(e) => {
+                  const newView = e.target.value;
+                  const calendarApi = calendarRef.current?.getApi();
+                  if (calendarApi) {
+                    calendarApi.changeView(newView);
+                    setCurrentView(newView);
+                    setIsManualView(true);
+                  }
+                }}
+              >
+                <option value="dayGridMonth">Месяц</option>
+                <option value="listWeek">Список недели</option>
+              </select>
+            </div>
+          </div>
+
           <FullCalendar
             ref={calendarRef}
             plugins={[
@@ -63,27 +144,30 @@ const CalendarPage = observer(() => {
               listPlugin,
             ]}
             initialView={currentView}
-            headerToolbar={{
-              left: "prev,next today",
-              center: "title",
-              right: "dayGridMonth,listWeek",
-            }}
+            headerToolbar={false}
             titleFormat={{ month: "short", day: "numeric" }}
+            eventTimeFormat={undefined}
             events={events}
             locales={[ruLocale]}
             locale={ruLocale}
-            // eventClick={(info) => {
-            //   alert(`Событие: ${info.event.title}`);
-            // }}
+            eventClick={(info) => {
+              // if ((window as any).Telegram?.WebApp) {
+              //   (window as any).Telegram.WebApp.showAlert(
+              //     "Это встроенный alert!",
+              //   );
+              // }
+
+              alert(`Дозировка приема: ${info.event.extendedProps.dosage}`);
+            }}
             dateClick={(info) => {
               setSelectedDate(new Date(info.dateStr)); // сохраняем выбранную дату
               setShowModal(true); // показываем модалку
             }}
-            dayMaxEvents={9}
+            dayMaxEvents={3}
             timeZone="local"
             nowIndicator={true}
             height="auto"
-            aspectRatio={1.5}
+            aspectRatio={3.0}
           />
 
           {/* 👇 модалка добавления курса */}

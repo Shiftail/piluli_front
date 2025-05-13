@@ -18,18 +18,20 @@ const AddScheduleModal = observer(
   }) => {
     const calendarStore = CalendarStore.use();
     const drugStore = DrugStore.use();
-    const [customDrug, setCustomDrug] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(true);
     const user = JSON.parse(sessionStorage.getItem("user") || "{}");
     const userTimeZoneOffset = (user?.time_zone || 0) * 60; // в минутах
 
-    // // Получаем локальную таймзону браузера (например, Europe/Moscow)
-    // const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
     const toUtcISOString = (date: Date): string => {
-      // Вернёт ISO строку в UTC
       return new Date(
         date.getTime() - userTimeZoneOffset * 60000,
       ).toISOString();
+    };
+
+    const fromUtcToLocalDate = (utcString: string): Date => {
+      const date = new Date(utcString);
+      date.setMinutes(date.getMinutes() + userTimeZoneOffset);
+      return date;
     };
 
     const [form, setForm] = useState<DrugSchedule>({
@@ -44,35 +46,23 @@ const AddScheduleModal = observer(
       is_active: true,
     });
 
-    const handleSelectDrug = (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const value = e.target.value;
-      if (value === "custom") {
-        setCustomDrug(true);
-        setForm({ ...form, name_drug: "" });
-      } else {
-        const selected = drugStore.drugs.find((d) => d.id === value);
-        if (selected) {
-          setCustomDrug(false);
-          setForm({
-            ...form,
-            name_drug: selected.name,
-            dosage: selected.dosage,
-            frequency: selected.frequency,
-            interval: selected.interval,
-            description: selected.description,
-          });
-        }
-      }
-    };
-
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const localDate = new Date(e.target.value);
       setForm({
         ...form,
-        start_datetime: localDate.toISOString(), // сохраняем в локальном времени
-        start_schedule: localDate.toTimeString().slice(0, 5),
+        start_datetime: fromUtcToLocalDate(localDate.toString()).toString(),
+        start_schedule: e.target.value.slice(11, 16), // безопасно получаем HH:mm
       });
     };
+    const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const localDate = new Date(e.target.value);
+      const utcDate = toUtcISOString(localDate);
+      setForm({
+        ...form,
+        end_datetime: utcDate, // Конвертируем только end_datetime
+      });
+    };
+
     //FIXME: НЕ ПРАВИЛЬНО РАБОТАЕТ
     const handleSubmit = async () => {
       try {
@@ -101,7 +91,7 @@ const AddScheduleModal = observer(
                 Добавить курс приёма
               </h2>
               <div className="space-y-4">
-                <div className="flex flex-col">
+                <div className="flex flex-col relative">
                   <label className="text-sm font-medium text-gray-600">
                     Название лекарства
                   </label>
@@ -109,37 +99,47 @@ const AddScheduleModal = observer(
                     type="text"
                     placeholder="Введите название лекарства"
                     className="input"
-                    disabled={!customDrug}
                     value={form.name_drug}
-                    onChange={(e) =>
-                      setForm({ ...form, name_drug: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setForm({ ...form, name_drug: value });
+                      setShowSuggestions(true);
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
+                    onBlur={() => {
+                      // Делаем задержку, чтобы успеть нажать на подсказку
+                      setTimeout(() => setShowSuggestions(false), 150);
+                    }}
                   />
-                </div>
-                <div className="flex flex-col">
-                  <label className="text-sm font-medium text-gray-600">
-                    Выберите лекарство
-                  </label>
-                  <select
-                    className="input"
-                    onChange={handleSelectDrug}
-                    value={
-                      customDrug
-                        ? "custom"
-                        : drugStore.drugs.find((d) => d.name === form.name_drug)
-                            ?.id || ""
-                    }
-                  >
-                    <option value="" disabled>
-                      -- Выберите из списка --
-                    </option>
-                    {drugStore.drugs.map((drug) => (
-                      <option key={drug.id} value={drug.id}>
-                        {drug.name}
-                      </option>
-                    ))}
-                    <option value="custom">Ввести своё</option>
-                  </select>
+                  {showSuggestions && form.name_drug && (
+                    <ul className="absolute top-full mt-1 w-full bg-white border border-gray-300 rounded shadow z-10 max-h-48 overflow-y-auto">
+                      {drugStore.drugs
+                        .filter((drug) =>
+                          drug.name
+                            .toLowerCase()
+                            .includes(form.name_drug.toLowerCase()),
+                        )
+                        .map((drug) => (
+                          <li
+                            key={drug.id}
+                            className="px-3 py-2 hover:bg-blue-100 cursor-pointer"
+                            onClick={() => {
+                              setForm({
+                                ...form,
+                                name_drug: drug.name,
+                                dosage: drug.dosage,
+                                frequency: drug.frequency,
+                                interval: drug.interval,
+                                description: drug.description,
+                              });
+                              setShowSuggestions(false);
+                            }}
+                          >
+                            {drug.name}
+                          </li>
+                        ))}
+                    </ul>
+                  )}
                 </div>
 
                 <div className="flex flex-col">
@@ -208,7 +208,9 @@ const AddScheduleModal = observer(
                   <input
                     type="datetime-local"
                     className="input"
-                    value={form.start_datetime.slice(0, 16)}
+                    value={fromUtcToLocalDate(form.start_datetime)
+                      .toISOString()
+                      .slice(0, 16)}
                     onChange={handleStartDateChange}
                   />
                 </div>
@@ -233,13 +235,10 @@ const AddScheduleModal = observer(
                   <input
                     type="datetime-local"
                     className="input"
-                    value={form.end_datetime.slice(0, 16)}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        end_datetime: new Date(e.target.value).toISOString(),
-                      })
-                    }
+                    value={fromUtcToLocalDate(form.end_datetime)
+                      .toISOString()
+                      .slice(0, 16)}
+                    onChange={handleEndDateChange}
                   />
                 </div>
 

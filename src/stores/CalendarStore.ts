@@ -5,6 +5,8 @@ interface CalendarEvent {
   title: string;
   start_date: string;
   end_date: string;
+  backgroundColor?: string;
+  dosage: number;
 }
 
 export interface DrugSchedule {
@@ -49,7 +51,6 @@ class CalendarStore {
       if (data) {
         const events: CalendarEvent[] = [];
         const seenStarts = new Set<string>();
-
         data.forEach((entry: any) => {
           const {
             id,
@@ -59,42 +60,33 @@ class CalendarStore {
             schedule_times,
           } = entry;
 
-          const start = new Date(start_datetime);
-          const end = new Date(end_datetime);
-          const diffMs = end.getTime() - start.getTime();
-          const diffDays = diffMs / (1000 * 60 * 60 * 24);
+          events.push({
+            id: `${id}_course`,
+            title: `Курс: ${name_drug}`,
+            start_date: start_datetime,
+            end_date: end_datetime,
+            dosage: entry.dosage,
+          });
 
-          if (diffDays < 1) {
-            events.push({
-              id: `${id}_single`,
-              title: `Приём: ${name_drug}`,
-              start_date: start_datetime,
-              end_date: end_datetime,
+          schedule_times?.forEach((day: any) => {
+            day.appointments?.forEach((appointment: any, index: number) => {
+              const key = `${appointment.start}-${id}`;
+              if (!seenStarts.has(key)) {
+                seenStarts.add(key);
+                events.push({
+                  id: `${id}_${day.date}_${index}`,
+                  title: name_drug,
+                  start_date: appointment.start,
+                  end_date: appointment.end,
+                  backgroundColor: appointment.done ? "green" : "gray",
+                  dosage: entry.dosage,
+                });
+              }
             });
-          } else {
-            events.push({
-              id: `${id}_course`,
-              title: `Курс: ${name_drug}`,
-              start_date: start_datetime,
-              end_date: end_datetime,
-            });
-
-            schedule_times?.forEach((day: any) => {
-              day.appointments?.forEach((appointment: any, index: number) => {
-                const key = `${appointment.start}-${id}`;
-                if (!seenStarts.has(key)) {
-                  seenStarts.add(key);
-                  events.push({
-                    id: `${id}_${day.date}_${index}`,
-                    title: `Приём: ${name_drug}`,
-                    start_date: appointment.start,
-                    end_date: appointment.end,
-                  });
-                }
-              });
-            });
-          }
+          });
         });
+
+        console.log(events);
 
         runInAction(() => {
           this.events = events;
