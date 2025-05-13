@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthStore } from "../stores/AuthStore";
-import type { IRegisterErrorResponse, IUserCreate } from "../stores/AuthStore";
+import type { IUserCreate } from "../stores/AuthStore";
 import { motion } from "framer-motion";
 
 const RegisterPage = () => {
@@ -20,7 +20,6 @@ const RegisterPage = () => {
     is_verified: false,
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -61,8 +60,6 @@ const RegisterPage = () => {
           }
         });
         setFormErrors(formattedErrors); // Обновляем состояние с ошибками
-      } else {
-        setErrorMessage("Ошибка регистрации");
       }
     }
   };
