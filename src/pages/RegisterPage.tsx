@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthStore } from "../stores/AuthStore";
-import type { IUserCreate } from "../stores/AuthStore";
+import type { IRegisterErrorResponse, IUserCreate } from "../stores/AuthStore";
 import { motion } from "framer-motion";
 
 const RegisterPage = () => {
   const authStore = AuthStore.use();
   const navigate = useNavigate();
-  const [errorMessage, setErrorMessage] = useState("");
-
-  // State to hold user input
   const [user, setUser] = useState<IUserCreate>({
     username: "",
     email: "",
@@ -22,9 +19,11 @@ const RegisterPage = () => {
     is_superuser: false,
     is_verified: false,
   });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setUser((prev) => ({
@@ -37,6 +36,7 @@ const RegisterPage = () => {
       })(),
     }));
   };
+
   useEffect(() => {
     const offsetInHours = -new Date().getTimezoneOffset() / 60;
     setUser((prev) => ({
@@ -51,30 +51,24 @@ const RegisterPage = () => {
       // После успешной регистрации можно перенаправить пользователя или выполнить другие действия
       navigate("/login");
     } catch (error) {
-      setErrorMessage((error as any).message); // Устанавливаем сообщение об ошибке
+      // Обработка ошибок с сервера
+      const errorData: Record<string, string>[] = JSON.parse(error as string);
+      if (errorData) {
+        const formattedErrors: { [key: string]: string } = {};
+        errorData.forEach((error) => {
+          for (const [field, message] of Object.entries(error)) {
+            formattedErrors[field] = message;
+          }
+        });
+        setFormErrors(formattedErrors); // Обновляем состояние с ошибками
+      } else {
+        setErrorMessage("Ошибка регистрации");
+      }
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      {errorMessage && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.5 }}
-          className="absolute top-0 left-1/2 transform -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded shadow-md z-50"
-        >
-          {errorMessage}
-          <button
-            className="ml-4 text-sm text-red-500 hover:underline"
-            onClick={() => setErrorMessage("")}
-          >
-            Закрыть
-          </button>
-        </motion.div>
-      )}
-
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -85,6 +79,7 @@ const RegisterPage = () => {
           Зарегистрироваться
         </h1>
 
+        {/* Поля формы */}
         <div className="mb-4">
           <label
             htmlFor="username"
@@ -121,6 +116,9 @@ const RegisterPage = () => {
             required
             whileFocus={{ scale: 1.02 }}
           />
+          {formErrors.email && (
+            <p className="text-red-500 text-sm">{formErrors.email}</p>
+          )}
         </div>
 
         <div className="mb-4">
@@ -140,6 +138,9 @@ const RegisterPage = () => {
             required
             whileFocus={{ scale: 1.02 }}
           />
+          {formErrors.password && (
+            <p className="text-red-500 text-sm">{formErrors.password}</p>
+          )}
         </div>
 
         <div className="mb-4">
@@ -178,25 +179,10 @@ const RegisterPage = () => {
             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             whileFocus={{ scale: 1.02 }}
           />
+          {formErrors.age && (
+            <p className="text-red-500 text-sm">{formErrors.age}</p>
+          )}
         </div>
-
-        {/* <div className="mb-4">
-          <label
-            htmlFor="tg_id"
-            className="block text-gray-700 text-sm font-bold mb-2"
-          >
-            Telegram ID
-          </label>
-          <motion.input
-            id="tg_id"
-            type="number"
-            name="tg_id"
-            value={user.tg_id}
-            readOnly
-            onChange={handleChange}
-            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div> */}
 
         <div className="mb-4">
           <label

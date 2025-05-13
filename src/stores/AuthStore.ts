@@ -13,7 +13,6 @@ export interface IUserRead {
   tg_id: number;
   timezone: number;
 }
-
 export interface IUserCreate {
   username: string;
   email: string;
@@ -26,6 +25,18 @@ export interface IUserCreate {
   is_superuser: boolean;
   is_verified: boolean;
 }
+
+export interface IRegisterErrorResponse {
+  detail: IRegisterError[];
+}
+interface IRegisterError {
+  type: string;
+  loc: string[];
+  msg: string;
+  input: string | number | boolean | Date;
+  ctx: Record<string, any>;
+}
+
 const baseURL = import.meta.env.VITE_BACKEND_URL;
 
 class AuthStore {
@@ -52,18 +63,31 @@ class AuthStore {
     }
   }
 
+  // authStore.ts
   register = async (user: IUserCreate) => {
     const response = await fetch(`${baseURL}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "ngrok-skip-browser-warning": "69420",
       },
       body: JSON.stringify(user),
     });
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Ошибка регистрации");
+
+    if (response.status === 422) {
+      // Получаем ошибку от сервера
+      const errorData: IRegisterErrorResponse = await response.json();
+
+      // Проверка на наличие ошибок валидации
+      if (errorData.detail) {
+        let register_errors: Record<string, string>[] = [];
+        errorData.detail.forEach((error) => {
+          // Проверяем, есть ли второй элемент в loc, иначе добавляем ошибку по умолчанию
+          const field = error.loc.length > 1 ? error.loc[1] : "unknown_field";
+          register_errors.push({ [field]: error.msg });
+        });
+
+        throw JSON.stringify(register_errors);
+      }
     }
 
     return await response.json();

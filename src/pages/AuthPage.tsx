@@ -31,7 +31,7 @@ export default function AuthPage() {
     } catch (e) {
       console.error("Ошибка при инициализации Telegram WebApp:", e);
     }
-  }, [authStore.isAuthenticated]);
+  }, []);
 
   const handleLogin = async () => {
     setLoading(true);
@@ -77,7 +77,7 @@ export default function AuthPage() {
         className="bg-white p-8 rounded-lg shadow-lg w-96 transform transition-all duration-300 ease-in-out hover:scale-105"
       >
         <h1 className="text-3xl font-semibold text-center text-gray-700 mb-6">
-          Login
+          Войти
         </h1>
 
         <div className="mb-4">
@@ -120,7 +120,7 @@ export default function AuthPage() {
           }`}
           whileHover={!loading ? { scale: 1.05 } : {}}
         >
-          {loading ? "Загрузка..." : "Login"}
+          {loading ? "Загрузка..." : "Войти"}
         </motion.button>
 
         <motion.button
