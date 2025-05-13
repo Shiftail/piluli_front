@@ -159,6 +159,25 @@ class AuthStore {
     };
   };
 
+  update = async (updatedUser: Pick<IUserCreate, "email">) => {
+    const response = await fetch(`${baseURL}/users/me`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.access_token}`,
+      },
+      body: JSON.stringify({ email: updatedUser.email }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to update profile");
+    }
+
+    // при необходимости можно обновить локального пользователя:
+    const updatedData = await response.json();
+    this.user = { ...this.user, ...updatedData };
+  };
+
   static use() {
     return authStoreInstance;
   }

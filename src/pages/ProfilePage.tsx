@@ -1,14 +1,18 @@
 "use client";
+import { useEffect, useState } from "react";
 
-import React, { useEffect, useState } from "react";
 import { AuthStore } from "../stores/AuthStore";
-import { TextField } from "../ui/components/TextField";
-import { Button } from "../ui/components/Button";
 import { parseInitData } from "../utils/parseInitData.ts";
+import { motion } from "framer-motion";
 
 export const ProfilePage = () => {
   const authStore = AuthStore.use();
   const [avatarUrl, SetAvatarUrl] = useState("");
+  const [email, setEmail] = useState(
+    authStore.user ? authStore.user.email : "",
+  );
+  const [emailChanged, setEmailChanged] = useState(false);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
   useEffect(() => {
     const tg = (window as any).Telegram?.WebApp;
@@ -27,10 +31,27 @@ export const ProfilePage = () => {
           "https://i.fbcd.co/products/resized/resized-750-500/d4c961732ba6ec52c0bbde63c9cb9e5dd6593826ee788080599f68920224e27d.jpg",
         );
       }
+
+      setIsButtonDisabled(!emailChanged);
     } catch (e) {
       console.error("Ошибка при инициализации Telegram WebApp:", e);
     }
-  }, []);
+  }, [emailChanged]);
+
+  const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(event.target.value);
+    setEmailChanged(event.target.value !== authStore.user?.email);
+  };
+
+  const handleUpdateProfile = async () => {
+    try {
+      await authStore.update({ email });
+      setEmailChanged(false);
+      setIsButtonDisabled(true);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
+  };
 
   return (
     <div className="flex h-full w-full items-start mobile:flex-col mobile:flex-nowrap mobile:gap-0">
@@ -55,111 +76,67 @@ export const ProfilePage = () => {
                   src={avatarUrl}
                   alt="avatar"
                 />
-                {/* <div className="flex flex-col items-start gap-2">
-                  <Button
-                    variant="neutral-secondary"
-                    icon={<FeatherUpload />}
-                    onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
-                      alert(event.target)
-                    }
-                  >
-                    Upload
-                  </Button>
-                </div> */}
               </div>
             </div>
-            <div className="flex w-full items-center gap-4">
-              <TextField
-                className="h-auto grow shrink-0 basis-0"
-                label="Никнейм"
-                helpText=""
+
+            <div className="flex w-full items-center gap-5">
+              <label
+                htmlFor="email"
+                className="block text-gray-700 text-sm font-bold mb-2"
               >
-                <TextField.Input
-                  placeholder=""
-                  value={authStore.user ? authStore.user.username : ""}
-                  readOnly
-                />
-              </TextField>
-            </div>
-            <div className="flex w-full items-center gap-4">
-              <TextField
-                className="h-auto grow shrink-0 basis-0"
-                label="Email"
-                helpText=""
-              >
-                <TextField.Input
-                  placeholder="admin@admin.com"
-                  value=""
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                    event;
-                  }}
-                />
-              </TextField>
-            </div>
-          </div>
-          <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-border" />
-          <div className="flex w-full flex-col items-start gap-6">
-            <span className="text-heading-3 font-heading-3 text-default-font">
-              Password
-            </span>
-            <TextField
-              className="h-auto w-full flex-none"
-              label="Текущий пароль"
-              helpText=""
-            >
-              <TextField.Input
-                type="password"
-                placeholder="Введите текущий пароль"
-                value=""
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                  event;
-                }}
-              />
-            </TextField>
-            <TextField
-              className="h-auto w-full flex-none"
-              label="Новый пароль"
-              helpText="Новый пароль должен состоять не менее чем из 8 символов, включать одну заглавную букву и одну цифру."
-            >
-              <TextField.Input
-                type="password"
-                placeholder="Введите новый пароль"
-                value=""
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                  event;
-                }}
-              />
-            </TextField>
-            <TextField className="h-auto w-full flex-none" label="" helpText="">
-              <TextField.Input
-                type="password"
-                placeholder="Подтвердите новый пароль"
-                value=""
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                  event;
-                }}
-              />
-            </TextField>
-            <TextField className="h-auto w-full flex-none" label="" helpText="">
-              <TextField.Input
+                Имя пользователя
+              </label>
+              <motion.input
+                id="email"
                 type="text"
-                placeholder="telegram id"
-                readOnly
-                value={String(authStore?.user?.tg_id || 0)}
+                name="username"
+                value={authStore.user?.username}
+                disabled={true}
+                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                whileFocus={{ scale: 1.02 }}
               />
-            </TextField>
-            <div className="flex w-full flex-col items-start justify-center gap-6">
-              <Button
-                variant="neutral-secondary"
-                onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                  event;
-                }}
+            </div>
+            <div className="flex w-full items-center gap-4">
+              <label
+                htmlFor="email"
+                className="block text-gray-700 text-sm font-bold mb-2"
               >
-                Изменить пароль
-              </Button>
+                Почта
+              </label>
+              <motion.input
+                id="email"
+                type="text"
+                name="username"
+                placeholder={authStore.user?.email}
+                value={email}
+                onChange={handleEmailChange}
+                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                whileFocus={{ scale: 1.02 }}
+              />
+            </div>
+            <div className="flex w-full justify-center mt-6">
+              {!isButtonDisabled ? (
+                <motion.button
+                  type="button"
+                  onClick={handleUpdateProfile}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition transform hover:scale-105"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  Сохранить изменения
+                </motion.button>
+              ) : (
+                <motion.button
+                  type="button"
+                  disabled={true}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-200 hover:bg-blue-300 text-white transition transform hover:scale-105"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  Сохранить изменения
+                </motion.button>
+              )}
             </div>
           </div>
-          <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-border" />
         </div>
       </div>
     </div>
