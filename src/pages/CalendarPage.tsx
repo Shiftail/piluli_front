@@ -28,7 +28,10 @@ const CalendarPage = observer(() => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isManualView, setIsManualView] = useState(false);
   const [direction, setDirection] = useState<"left" | "right">("right"); // прокрутка календаря по времени(пу-пу-пу)
+  const [calendarKey, setCalendarKey] = useState(0);
   const [showCalendar, setShowCalendar] = useState(true);
+
+  const [calendarDate, setCalendarDate] = useState(new Date());
   const [visibleDate, setVisibleDate] = useState(new Date());
   const [animating, setAnimating] = useState(false);
 
