@@ -43,6 +43,7 @@ const AddScheduleModal = observer(
       start_schedule: "",
       is_active: true,
     });
+    const [preNotifyHours, setPreNotifyHours] = useState<number>(0);
 
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const localDate = new Date(e.target.value);
@@ -209,6 +210,18 @@ const AddScheduleModal = observer(
                       .toISOString()
                       .slice(0, 16)}
                     onChange={handleStartDateChange}
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-sm font-medium text-gray-600">
+                    Уведоведомить за (часы)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="Введите количество часов для предватирельного уведомления"
+                    className="input"
+                    value={preNotifyHours}
+                    onChange={(e) => setPreNotifyHours(e.target.value)}
                   />
                 </div>
                 <div className="flex flex-col">
