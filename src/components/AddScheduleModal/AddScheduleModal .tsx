@@ -221,7 +221,7 @@ const AddScheduleModal = observer(
                     placeholder="Введите количество часов для предварительного уведомления"
                     className="input"
                     value={preNotifyHours}
-                    onChange={(e) => setPreNotifyHours(e.target.value)}
+                    onChange={(e) => setPreNotifyHours(Number(e.target.value))}
                   />
                 </div>
                 <div className="flex flex-col">
