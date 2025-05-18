@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import { AnimatePresence, motion } from "framer-motion";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pill, Clock, Repeat2, Pencil, Trash2, Info } from "lucide-react";
 import { useStores } from "../stores/useStores";
 import type { Drug, DrugRead } from "../stores/DrugStore";
 import AdminControls from "../components/adminControls/AdminControls";
@@ -119,46 +119,58 @@ const AdminPage = observer(() => {
       <div className="overflow-x-auto mb-10">
         {drugStore.drugs && drugStore.drugs.length ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {drugStore.drugs.map((drug: DrugRead) => (
-              <div
+            {drugStore.drugs.map((drug: DrugRead, index) => (
+              <motion.div
                 key={drug.id}
-                className="border rounded-2xl p-4 shadow-md bg-white flex flex-col justify-between"
+                className="relative border border-blue-100 rounded-3xl p-5 bg-gradient-to-br from-white via-blue-50 to-white shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
               >
-                <div className="space-y-1">
-                  <div className="text-lg font-semibold text-gray-800">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-xl font-semibold text-blue-800">
+                    <Pill className="w-5 h-5 text-blue-600" />
                     {drug.name}
                   </div>
-                  <div className="text-sm text-gray-600">
-                    Дозировка: {drug.dosage} мг
+
+                  <div className="flex items-center text-sm text-gray-700 gap-2">
+                    <Info className="w-4 h-4 text-gray-400" />
+                    <span>{drug.description || "Без описания"}</span>
                   </div>
-                  <div className="text-sm text-gray-600">
-                    Частота: {drug.frequency} раз/день
+
+                  <div className="flex items-center text-sm text-gray-600 gap-2">
+                    <Repeat2 className="w-4 h-4 text-green-500" />
+                    <span>Дозировка: {drug.dosage} мг</span>
                   </div>
-                  <div className="text-sm text-gray-600">
-                    Интервал: {drug.interval} ч
+
+                  <div className="flex items-center text-sm text-gray-600 gap-2">
+                    <Clock className="w-4 h-4 text-purple-500" />
+                    <span>Частота: {drug.frequency} раз/день</span>
                   </div>
-                  <div className="text-sm text-gray-700 mt-2 whitespace-pre-line">
-                    {drug.description}
+
+                  <div className="flex items-center text-sm text-gray-600 gap-2">
+                    <Clock className="w-4 h-4 text-yellow-500" />
+                    <span>Интервал: {drug.interval} ч</span>
                   </div>
                 </div>
 
-                <div className="mt-4 flex justify-end gap-3">
+                <div className="mt-5 flex justify-end gap-3">
                   <button
                     onClick={() => handleEditDrug(drug)}
-                    className="text-blue-600 hover:text-blue-800 transition"
+                    className="p-2 rounded-full hover:bg-blue-100 text-blue-600 transition"
                     title="Редактировать"
                   >
-                    <Pencil size={20} />
+                    <Pencil className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => handleDeleteDrug(drug.id)}
-                    className="text-red-600 hover:text-red-800 transition"
+                    className="p-2 rounded-full hover:bg-red-100 text-red-600 transition"
                     title="Удалить"
                   >
-                    <Trash2 size={20} />
+                    <Trash2 className="w-5 h-5" />
                   </button>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         ) : (

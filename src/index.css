@@ -9,4 +9,14 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale; */
+  --color-blue-600: #5a9fe2;
+  --color-green-300: #4dbf9d;
+}
+
+.bg-blue-600 {
+  background-color: var(--color-blue-600) !important;
+}
+
+.bg-green-300 {
+  background-color: var(--color-green-300) !important;
 }
