@@ -31,7 +31,6 @@ const CalendarPage = observer(() => {
   const [calendarKey, setCalendarKey] = useState(0);
   const [showCalendar, setShowCalendar] = useState(true);
 
-  const [calendarDate, setCalendarDate] = useState(new Date());
   const [visibleDate, setVisibleDate] = useState(new Date());
   const [animating, setAnimating] = useState(false);
 
@@ -169,6 +168,7 @@ const CalendarPage = observer(() => {
                 transition={{ duration: 0.3, ease: "easeInOut" }}
               >
                 <FullCalendar
+                  key={calendarKey}
                   ref={calendarRef}
                   plugins={[
                     dayGridPlugin,
