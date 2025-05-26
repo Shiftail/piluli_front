@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Header } from "../header/Header";
 
 interface LayoutProps {
@@ -7,9 +7,15 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-1">{children}</main>
+    <div className="flex min-h-screen">
+      {/* отступ под фикс. header */}
+      {/* <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} /> */}
+      <div className="flex-1">
+        {/* <Header /> */}
+        <main className=" overflow-hidden transition-all duration-300">
+          {children}
+        </main>
+      </div>
     </div>
   );
 };

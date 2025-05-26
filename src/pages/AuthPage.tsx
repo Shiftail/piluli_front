@@ -13,31 +13,14 @@ export default function AuthPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (authStore.isAuthenticated) navigate("/calendar");
-    const tg = (window as any).Telegram?.WebApp;
-    if (!tg) {
-      console.warn("Telegram WebApp не найден");
-      return;
-    }
-    try {
-      tg.ready();
-      const initData = tg.initData;
-      const user = parseInitData(initData);
-      if (user?.user?.id) {
-        sessionStorage.setItem("telegram_id", user.user.id);
-      } else {
-        console.warn("Telegram user id не найден");
-      }
-    } catch (e) {
-      console.error("Ошибка при инициализации Telegram WebApp:", e);
-    }
+    if (authStore.isAuthenticated) navigate("/map");
   }, [authStore.isAuthenticated]);
 
   const handleLogin = async () => {
     setLoading(true);
     try {
       await authStore.login(username, password);
-      navigate("/calendar");
+      navigate("/map");
     } catch (e) {
       setError("Ошибка авторизации");
       console.log(JSON.stringify(e));

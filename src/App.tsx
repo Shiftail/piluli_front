@@ -9,27 +9,42 @@ import {
 import { useStores } from "./stores/useStores";
 import AuthPage from "./pages/AuthPage";
 import { ProfilePage } from "./pages/ProfilePage";
-import CalendarPage from "./pages/CalendarPage";
+import { MapPage } from "./pages/MapPage";
 import { ProtectedRoute } from "./components/PretectedRoute";
-import "./App.css";
 import Layout from "./components/layout/layout";
+
+// Pages
 import RegisterPage from "./pages/RegisterPage";
 import AdminPage from "./pages/AdminPage";
+import MainPage from "./pages/MainPage";
+import HomePage from "./pages/HomePage";
+
+import "leaflet/dist/leaflet.css";
+import "./App.css";
+import TeamsPage from "./pages/TeamsPage";
+import TeamDetailPage from "./pages/TeamDetailPage";
 
 const App = observer(() => {
-  const { authStore, calendarStore } = useStores();
+  const { authStore } = useStores();
+
+  // useEffect(() => {
+  //   if (authStore.isAuthenticated) {
+  //     calendarStore.fetchEvents();
+  //   }
+  // }, [authStore.isAuthenticated, calendarStore]);
 
   useEffect(() => {
-    if (authStore.isAuthenticated) {
-      calendarStore.fetchEvents();
-    }
-  }, [authStore.isAuthenticated, calendarStore]);
+    // if (authStore.isAuthenticated) {
+    //   calendarStore.fetchEvents();
+    // }
+  }, [authStore.isAuthenticated]);
 
   return (
     <Router>
       <Layout>
         <Routes>
           <Route path="/login" element={<AuthPage />} />
+          <Route path="/home" element={<HomePage />} />
           <Route
             path="/profile"
             element={
@@ -39,10 +54,34 @@ const App = observer(() => {
             }
           />
           <Route
-            path="/calendar"
+            path="/map"
             element={
               <ProtectedRoute>
-                <CalendarPage />
+                <MapPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/main"
+            element={
+              <ProtectedRoute>
+                <MainPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teams"
+            element={
+              <ProtectedRoute>
+                <TeamsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teams/:teamId"
+            element={
+              <ProtectedRoute>
+                <TeamDetailPage />
               </ProtectedRoute>
             }
           />
@@ -55,7 +94,7 @@ const App = observer(() => {
             }
           />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="*" element={<Navigate to="/calendar" />} />
+          <Route path="*" element={<Navigate to="/home" />} />
         </Routes>
       </Layout>
     </Router>

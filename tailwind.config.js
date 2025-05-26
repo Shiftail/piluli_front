@@ -2,10 +2,16 @@
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ["Inter", "sans-serif"],
+        barlow: ['"Barlow Semi Condensed"', "sans-serif"],
+      },
+    },
   },
   plugins: [],
   corePlugins: {
     preflight: false,
   },
+  fo,
 };
