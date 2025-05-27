@@ -47,6 +47,20 @@ export const MapPage = observer(() => {
   const [loadingRadius, setLoadingRadius] = useState(false);
   const [loadingNearest, setLoadingNearest] = useState(false);
 
+  // Маркеры, добавленные суперюзером
+  const [customSpots, setCustomSpots] = useState<SpotRead[]>([]);
+
+  // Координаты клика и данные новой площадки для формы
+  const [newSpotCoords, setNewSpotCoords] = useState<{
+    lat: number;
+    lon: number;
+  } | null>(null);
+  const [newSpotData, setNewSpotData] = useState({
+    name: "",
+    desc: "",
+    sport_type: "",
+  });
+
   const baseURL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
@@ -78,64 +92,12 @@ export const MapPage = observer(() => {
     return () => navigator.geolocation.clearWatch(watchId);
   }, [spotsStore]);
 
-  // Функция запроса спотов в радиусе
-  const fetchSpotsWithinRadius = async () => {
-    setLoadingRadius(true);
-    setSpotsInRadius([]);
-    setNearestSpot(null); // сброс ближайшего
+  // Обработчик клика по карте — открываем форму, если суперюзер
+  const onMapClick = (e: L.LeafletMouseEvent) => {
+    if (!authStore.user?.is_superuser) return;
 
-    try {
-      const response = await fetch(
-        `${baseURL}/points_within_radius?lat=${
-          (position as [number, number])[0]
-        }&lon=${(position as [number, number])[1]}&radius=${radiusKm}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authStore.access_token}`,
-          },
-        },
-      );
-      if (!response.ok) throw new Error("Ошибка запроса спотов в радиусе");
-      const data: SpotRead[] = await response.json();
-      setSpotsInRadius(data);
-    } catch (error) {
-      console.error(error);
-      alert("Не удалось загрузить споты в радиусе");
-    } finally {
-      setLoadingRadius(false);
-    }
-  };
-
-  // Функция запроса ближайшего спота
-  const fetchNearestSpot = async () => {
-    setLoadingNearest(true);
-    setNearestSpot(null);
-    setSpotsInRadius([]); // сброс списка спотов в радиусе
-
-    try {
-      const response = await fetch(
-        `${baseURL}/nearest?lat=${(position as [number, number])[0]}&lon=${
-          (position as [number, number])[1]
-        }`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authStore.access_token}`,
-          },
-        },
-      );
-      if (!response.ok) throw new Error("Ошибка запроса ближайшего спота");
-      const data: SpotRead = await response.json();
-      setNearestSpot(data);
-    } catch (error) {
-      console.error(error);
-      alert("Не удалось загрузить ближайший спот");
-    } finally {
-      setLoadingNearest(false);
-    }
+    setNewSpotCoords({ lat: e.latlng.lat, lon: e.latlng.lng });
+    setNewSpotData({ name: "", desc: "", sport_type: "" });
   };
 
   return (
@@ -147,37 +109,14 @@ export const MapPage = observer(() => {
         />
       )}
       <div className="relative z-10 h-[97vh] rounded-xl overflow-hidden shadow-xl border border-gray-300 flex flex-col">
-        {/* <div className="p-2 bg-white flex items-center space-x-2 border-b border-gray-300">
-          <label>
-            Радиус (км):
-            <input
-              type="number"
-              min={1}
-              max={100}
-              value={radiusKm}
-              onChange={(e) => setRadiusKm(Number(e.target.value))}
-              className="ml-2 w-20 px-1 border rounded"
-              disabled={loadingRadius || loadingNearest}
-            />
-          </label>
-          <button
-            onClick={fetchSpotsWithinRadius}
-            disabled={loadingRadius || loadingNearest}
-            className="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50"
-          >
-            {loadingRadius ? "Загрузка..." : "Загрузить споты в радиусе"}
-          </button>
-
-          <button
-            onClick={fetchNearestSpot}
-            disabled={loadingNearest || loadingRadius}
-            className="px-3 py-1 rounded bg-green-500 text-white hover:bg-green-600 disabled:opacity-50"
-          >
-            {loadingNearest ? "Загрузка..." : "Найти ближайший спот"}
-          </button>
-        </div> */}
-
-        <MapContainer center={position} zoom={15} className="flex-grow">
+        <MapContainer
+          center={position}
+          zoom={15}
+          className="flex-grow"
+          whenCreated={(map) => {
+            map.on("click", onMapClick);
+          }}
+        >
           <SetViewOnChange center={position} zoom={15} />
           <TileLayer url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png" />
           <div className="absolute top-2 right-2 z-[1000]">
@@ -222,15 +161,15 @@ export const MapPage = observer(() => {
             </Marker>
           ))}
 
-          {/* Споты в радиусе */}
-          {/* {spotsInRadius.map((spot) => (
+          {/* Маркеры, добавленные суперюзером */}
+          {customSpots.map((spot) => (
             <Marker
-              key={"radius_" + spot.id}
+              key={"custom_" + spot.id}
               position={[spot.lat, spot.lon]}
               icon={
                 new L.Icon({
                   iconUrl:
-                    "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
+                    "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
                   iconSize: [25, 41],
                   iconAnchor: [12, 41],
                   popupAnchor: [1, -34],
@@ -242,51 +181,112 @@ export const MapPage = observer(() => {
             >
               <Popup>
                 <div>
-                  <strong>{spot.name}</strong>
+                  <strong>{spot.name}</strong> (Добавлено вами)
                   <br />
                   {spot.desc}
                   <br />
                   <em>{spot.country}</em>
-                  {spot.sport_type && <div>Тип спорта: {spot.sport_type}</div>}
                 </div>
               </Popup>
             </Marker>
-          ))} */}
-
-          {/* Ближайший спот */}
-          {/* {nearestSpot && (
-            <Marker
-              position={[nearestSpot.lat, nearestSpot.lon]}
-              icon={
-                new L.Icon({
-                  iconUrl:
-                    "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
-                  iconSize: [30, 50],
-                  iconAnchor: [15, 50],
-                  popupAnchor: [1, -34],
-                  shadowUrl:
-                    "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
-                  shadowSize: [41, 41],
-                })
-              }
-            >
-              <Popup>
-                <div>
-                  <strong>{nearestSpot.name}</strong> (Ближайший спот)
-                  <br />
-                  {nearestSpot.desc}
-                  <br />
-                  <em>{nearestSpot.country}</em>
-                  {nearestSpot.sport_type && (
-                    <div>Тип спорта: {nearestSpot.sport_type}</div>
-                  )}
-                </div>
-              </Popup>
-            </Marker>
-          )} */}
+          ))}
         </MapContainer>
       </div>
-      <FloatingBottomBar />
+
+      {/* Форма создания новой площадки */}
+      {newSpotCoords && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded p-4 w-80">
+            <h2 className="text-lg font-bold mb-2">Новая площадка</h2>
+            <label className="block mb-2">
+              Название:
+              <input
+                type="text"
+                className="border p-1 w-full"
+                value={newSpotData.name}
+                onChange={(e) =>
+                  setNewSpotData((prev) => ({ ...prev, name: e.target.value }))
+                }
+              />
+            </label>
+            <label className="block mb-2">
+              Описание:
+              <textarea
+                className="border p-1 w-full"
+                value={newSpotData.desc}
+                onChange={(e) =>
+                  setNewSpotData((prev) => ({ ...prev, desc: e.target.value }))
+                }
+              />
+            </label>
+            <label className="block mb-4">
+              Тип спорта:
+              <input
+                type="text"
+                className="border p-1 w-full"
+                value={newSpotData.sport_type}
+                onChange={(e) =>
+                  setNewSpotData((prev) => ({
+                    ...prev,
+                    sport_type: e.target.value,
+                  }))
+                }
+              />
+            </label>
+
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-3 py-1 bg-gray-300 rounded"
+                onClick={() => setNewSpotCoords(null)}
+              >
+                Отмена
+              </button>
+              <button
+                className="px-3 py-1 bg-blue-600 text-white rounded"
+                onClick={async () => {
+                  if (!newSpotCoords) return;
+                  if (!newSpotData.name.trim()) {
+                    alert("Название обязательно");
+                    return;
+                  }
+                  try {
+                    const response = await fetch(`${baseURL}/spots`, {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${authStore.access_token}`,
+                      },
+                      body: JSON.stringify({
+                        lat: newSpotCoords.lat,
+                        lon: newSpotCoords.lon,
+                        name: newSpotData.name,
+                        desc: newSpotData.desc,
+                        sport_type: newSpotData.sport_type,
+                      }),
+                    });
+                    if (!response.ok)
+                      throw new Error("Ошибка при добавлении площадки");
+                    const createdSpot: SpotRead = await response.json();
+
+                    setCustomSpots((prev) => [...prev, createdSpot]);
+                    setNewSpotCoords(null);
+                  } catch (error) {
+                    alert("Не удалось добавить площадку");
+                    console.error(error);
+                  }
+                }}
+              >
+                Создать
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <FloatingBottomBar
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+      />
     </div>
   );
 });

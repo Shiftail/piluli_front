@@ -46,7 +46,7 @@ export class MatchesStore {
     }
     return await res.json();
   }
-  async fetchMatches() {
+  async fetchMatches(): MatchCreatePayload[] {
     this.loading = true;
     this.error = null;
     try {
@@ -73,5 +73,23 @@ export class MatchesStore {
         this.loading = false;
       });
     }
+  }
+  async updateMatch(
+    id: string,
+    payload: Partial<MatchCreatePayload>,
+  ): Promise<MatchCreatePayload> {
+    const res = await fetch(`${baseURL}/matches/${id}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${this.authStore.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Ошибка обновления матча: ${errorText}`);
+    }
+    return await res.json();
   }
 }

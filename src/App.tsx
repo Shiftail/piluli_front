@@ -18,12 +18,14 @@ import RegisterPage from "./pages/RegisterPage";
 import AdminPage from "./pages/AdminPage";
 import MainPage from "./pages/MainPage";
 import HomePage from "./pages/HomePage";
+import { MatchListPage } from "./pages/MatchesPage";
 
 import "leaflet/dist/leaflet.css";
 import "./App.css";
 import TeamsPage from "./pages/TeamsPage";
 import TeamDetailPage from "./pages/TeamDetailPage";
 import { CreateMatchPage } from "./pages/CreateMatchPage";
+import { MatchEditPage } from "./pages/MatcheditPage";
 import CreateTeamPage from "./pages/CreateTeamPage";
 
 const App = observer(() => {
@@ -63,6 +65,8 @@ const App = observer(() => {
               </ProtectedRoute>
             }
           />
+          <Route path="/matches" element={<MatchListPage />} />
+          <Route path="/matches/edit/:id" element={<MatchEditPage />} />
           <Route
             path="/main"
             element={

@@ -4,6 +4,7 @@ import { observer } from "mobx-react-lite";
 import { Home, Plus, User, MapPin, Settings, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStores } from "../../stores/useStores";
+
 export const FloatingBottomBar = observer(() => {
   const navigate = useNavigate();
   const { teamsStore } = useStores();
@@ -27,6 +28,16 @@ export const FloatingBottomBar = observer(() => {
     setTimeout(() => setAnimationPhase("expand"), 600);
   };
 
+  // Навигация на страницу матчей с текущей командой пользователя
+  const goToMatches = () => {
+    if (teamsStore.currentTeam) {
+      navigate(`/matches?teamId=${teamsStore.currentTeam.id}`);
+    } else {
+      // Если команда не выбрана — можно вывести предупреждение или перейти на страницу выбора команды
+      navigate("/matches");
+    }
+  };
+
   // Анимации для кнопки
   const buttonVariants = {
     idle: {
@@ -45,7 +56,7 @@ export const FloatingBottomBar = observer(() => {
       bottom: "50%",
       left: "50%",
       x: "-50%",
-      y: "50%", // поднимаем в центр экрана
+      y: "50%",
       scale: 1.1,
       borderRadius: "50%",
       width: 64,
@@ -75,7 +86,7 @@ export const FloatingBottomBar = observer(() => {
       transition: { duration: 0.5, ease: "easeInOut" },
     },
     fly: {
-      y: 100, // уезжает вниз на 100px
+      y: 100,
       opacity: 0,
       transition: { duration: 0.5, ease: "easeInOut" },
     },
@@ -116,6 +127,12 @@ export const FloatingBottomBar = observer(() => {
                   icon={<MapPin size={22} />}
                   label="Карта"
                   onClick={() => navigate("/map")}
+                />
+                {/* Новая кнопка Матчи */}
+                <NavItem
+                  icon={<Home size={22} />}
+                  label="Матчи"
+                  onClick={goToMatches}
                 />
               </div>
               {/* Правая часть */}
@@ -159,7 +176,6 @@ export const FloatingBottomBar = observer(() => {
           className="z-50 bg-gray-900 text-white shadow-xl  flex items-center justify-center cursor-default"
         >
           {animationPhase === "expand" ? (
-            // <Home size={80} />
             <img src="/logo.svg" alt="" />
           ) : (
             <Plus size={30} />
