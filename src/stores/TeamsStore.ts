@@ -142,6 +142,42 @@ class TeamStore {
       });
     }
   }
+  async CreateTeam(
+    team: Omit<Team, "member_count" | "members" | "created_at">,
+  ) {
+    this.loading = true;
+    this.error = null;
+    try {
+      const response = await fetch(`${baseURL}/teams`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.authStore.access_token}`,
+        },
+        body: JSON.stringify(team),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || "Ошибка при создании команды");
+      }
+
+      const newTeam: TeamRead = await response.json();
+      runInAction(() => {
+        this.teams.push(newTeam);
+      });
+      return { success: true, team: newTeam };
+    } catch (e) {
+      runInAction(() => {
+        this.error = (e as Error).message;
+      });
+      return { success: false, error: this.error };
+    } finally {
+      runInAction(() => {
+        this.loading = false;
+      });
+    }
+  }
 }
 
 export { TeamStore };

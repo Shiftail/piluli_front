@@ -23,6 +23,8 @@ import "leaflet/dist/leaflet.css";
 import "./App.css";
 import TeamsPage from "./pages/TeamsPage";
 import TeamDetailPage from "./pages/TeamDetailPage";
+import { CreateMatchPage } from "./pages/CreateMatchPage";
+import CreateTeamPage from "./pages/CreateTeamPage";
 
 const App = observer(() => {
   const { authStore } = useStores();
@@ -69,11 +71,20 @@ const App = observer(() => {
               </ProtectedRoute>
             }
           />
+          <Route path="/create-match" element={<CreateMatchPage />} />
           <Route
             path="/teams"
             element={
               <ProtectedRoute>
                 <TeamsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teams/create"
+            element={
+              <ProtectedRoute>
+                <CreateTeamPage />
               </ProtectedRoute>
             }
           />

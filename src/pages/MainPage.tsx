@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { motion, useAnimation } from "framer-motion";
-
+import { useStores } from "../stores/useStores";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faComments,
@@ -11,6 +11,8 @@ import {
   faArrowLeft,
 } from "@fortawesome/free-solid-svg-icons";
 import { SizeProp } from "@fortawesome/fontawesome-svg-core";
+import { observer } from "mobx-react-lite";
+import { match } from "assert";
 
 const statsData = [
   { label: "Всего сообщений", value: 123, icon: faComments },
@@ -98,6 +100,7 @@ const StatsCarousel: React.FC = () => {
 };
 
 const MainPage: React.FC = () => {
+  const { teamsStore, matchesStore } = useStores();
   return (
     <div className="w-screen mx-auto p-4 sm:p-6 font-orbitron bg-gray-900 min-h-screen text-white">
       <div className="flex gap-3 items-center mb-8 sm:mb-12">
@@ -117,7 +120,6 @@ const MainPage: React.FC = () => {
 
       <StatsCarousel />
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-gray-200">
-        <TeamManagement />
         <UpcomingMatches />
         <SportsFacilities />
       </div>
@@ -169,15 +171,36 @@ const TeamManagement: React.FC = () => (
   </section>
 );
 
-const UpcomingMatches: React.FC = () => (
-  <section className="bg-gray-700 p-4 rounded-xl shadow-lg select-none">
-    <h3 className="text-xl mb-3 font-semibold text-white">Ближайшие матчи</h3>
-    <ul className="text-white text-base list-disc list-inside">
-      <li>Команда 1 vs Команда 2 — 26.05.2025 18:00</li>
-      <li>Команда 3 vs Команда 4 — 27.05.2025 20:00</li>
-    </ul>
-  </section>
-);
+const UpcomingMatches: React.FC = observer(() => {
+  const { matchesStore, teamsStore } = useStores();
+  useEffect(() => {
+    matchesStore.fetchMatches();
+    teamsStore.FetchTeams();
+  });
+  const getTeamName = (id: string) =>
+    teamsStore.teams.find((t) => t.id === id)?.name || "Неизвестная команда";
+
+  return (
+    <section className="bg-gray-700 p-4 rounded-xl shadow-lg select-none">
+      <h3 className="text-xl mb-3 font-semibold text-white">Ближайшие матчи</h3>
+      <ul className="text-white text-base list-disc list-inside">
+        {matchesStore.matches.map((match, index) => (
+          <li key={index}>
+            {getTeamName(match.team_first_id)} vs{" "}
+            {getTeamName(match.team_second_id)} —{" "}
+            {new Date(match.registered_at).toLocaleString("ru-RU", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+});
 
 const SportsFacilities: React.FC = () => (
   <section className="bg-gray-600 p-4 rounded-xl shadow-lg select-none">

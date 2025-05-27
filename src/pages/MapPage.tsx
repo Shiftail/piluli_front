@@ -6,6 +6,7 @@ import { useStores } from "../stores/useStores";
 import { SpotRead } from "../stores/SpotsStore";
 import "leaflet/dist/leaflet.css";
 import { observer } from "mobx-react-lite";
+import { useNavigate } from "react-router-dom";
 import { FloatingBottomBar } from "../components/BottomBar/FloatingBottomBar";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -34,7 +35,7 @@ const SetViewOnChange = ({
 export const MapPage = observer(() => {
   const defaultPosition: LatLngExpression = [55.751244, 37.618423]; // Москва
   const { authStore, spotsStore } = useStores();
-
+  const navigate = useNavigate();
   const [position, setPosition] = useState<LatLngExpression>(defaultPosition);
   const [activeUserMarkerPopup, setActiveUserMarkerPopup] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -203,20 +204,26 @@ export const MapPage = observer(() => {
           {spotsStore.spots.map((spot) => (
             <Marker key={spot.id} position={[spot.lat, spot.lon]}>
               <Popup>
-                <div>
+                <div className="text-sm">
                   <strong>{spot.name}</strong>
                   <br />
                   {spot.desc}
                   <br />
                   <em>{spot.country}</em>
                   {spot.sport_type && <div>Тип спорта: {spot.sport_type}</div>}
+                  <button
+                    onClick={() => navigate(`/create-match?spot_id=${spot.id}`)}
+                    className="mt-2 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs"
+                  >
+                    Создать матч
+                  </button>
                 </div>
               </Popup>
             </Marker>
           ))}
 
           {/* Споты в радиусе */}
-          {spotsInRadius.map((spot) => (
+          {/* {spotsInRadius.map((spot) => (
             <Marker
               key={"radius_" + spot.id}
               position={[spot.lat, spot.lon]}
@@ -244,10 +251,10 @@ export const MapPage = observer(() => {
                 </div>
               </Popup>
             </Marker>
-          ))}
+          ))} */}
 
           {/* Ближайший спот */}
-          {nearestSpot && (
+          {/* {nearestSpot && (
             <Marker
               position={[nearestSpot.lat, nearestSpot.lon]}
               icon={
@@ -276,7 +283,7 @@ export const MapPage = observer(() => {
                 </div>
               </Popup>
             </Marker>
-          )}
+          )} */}
         </MapContainer>
       </div>
       <FloatingBottomBar />
