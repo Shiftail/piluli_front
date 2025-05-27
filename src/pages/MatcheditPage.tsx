@@ -4,6 +4,7 @@ import { useStores } from "../stores/useStores";
 import { useParams, useNavigate } from "react-router-dom";
 
 type Match = {
+  id: string;
   spot_id: string;
   duration: number;
   team_first_id: string;
@@ -12,6 +13,45 @@ type Match = {
   team_second_score: number;
   visible: boolean;
 };
+
+const ScoreControl = ({
+  teamName,
+  score,
+  setScore,
+}: {
+  teamName: string;
+  score: number;
+  setScore: (val: number) => void;
+}) => (
+  <div className="flex flex-col items-center space-y-2">
+    <button
+      onClick={() => setScore(score + 1)}
+      className="w-10 h-10 rounded-full bg-green-500 hover:bg-green-600 text-white text-xl font-bold shadow"
+    >
+      +
+    </button>
+
+    <div>
+      <label className="block mb-1 text-center font-semibold">
+        Счет {teamName}
+      </label>
+      <input
+        type="number"
+        min={0}
+        value={score}
+        onChange={(e) => setScore(parseInt(e.target.value) || 0)}
+        className="w-20 p-2 rounded border border-orange-500 text-center text-white font-bold"
+      />
+    </div>
+
+    <button
+      onClick={() => setScore(Math.max(0, score - 1))}
+      className="w-10 h-10 rounded-full bg-red-500 hover:bg-red-600 text-white text-xl font-bold shadow"
+    >
+      −
+    </button>
+  </div>
+);
 
 export const MatchEditPage = observer(() => {
   const { matchesStore, teamsStore } = useStores();
@@ -57,13 +97,13 @@ export const MatchEditPage = observer(() => {
         duration: match.duration,
         visible: match.visible,
         team_first_id: match.team_first_id,
-        team_first_score: scoreFirst, // <-- здесь новые значения из состояния
+        team_first_score: scoreFirst,
         team_second_id: match.team_second_id,
-        team_second_score: scoreSecond, // <-- здесь новые значения из состояния
+        team_second_score: scoreSecond,
       };
 
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/matches/${match.spot_id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/matches/${match.id}`,
         {
           method: "PATCH",
           headers: {
@@ -93,7 +133,7 @@ export const MatchEditPage = observer(() => {
         Редактирование счета матча
       </h1>
 
-      <div className="mb-4 text-lg">
+      <div className="mb-4 text-lg text-center">
         <p>
           <span className="font-semibold">
             {getTeamNameById(match.team_first_id)}
@@ -106,32 +146,17 @@ export const MatchEditPage = observer(() => {
         <p>Длительность: {match.duration} мин</p>
       </div>
 
-      <div className="flex space-x-6 justify-center mb-6">
-        <div>
-          <label className="block mb-2">
-            Счет {getTeamNameById(match.team_first_id)}
-          </label>
-          <input
-            type="number"
-            min={0}
-            className="w-24 p-2 rounded border border-orange-500 text-gray-900 font-bold text-center"
-            value={scoreFirst}
-            onChange={(e) => setScoreFirst(parseInt(e.target.value) || 0)}
-          />
-        </div>
-
-        <div>
-          <label className="block mb-2">
-            Счет {getTeamNameById(match.team_second_id)}
-          </label>
-          <input
-            type="number"
-            min={0}
-            className="w-24 p-2 rounded border border-orange-500 text-gray-900 font-bold text-center"
-            value={scoreSecond}
-            onChange={(e) => setScoreSecond(parseInt(e.target.value) || 0)}
-          />
-        </div>
+      <div className="flex space-x-12 justify-center mb-8">
+        <ScoreControl
+          teamName={getTeamNameById(match.team_first_id)}
+          score={scoreFirst}
+          setScore={setScoreFirst}
+        />
+        <ScoreControl
+          teamName={getTeamNameById(match.team_second_id)}
+          score={scoreSecond}
+          setScore={setScoreSecond}
+        />
       </div>
 
       {error && <p className="text-red-500 text-center mb-4">{error}</p>}
@@ -146,7 +171,7 @@ export const MatchEditPage = observer(() => {
         </button>
         <button
           onClick={handleSave}
-          className="px-6 py-2 rounded bg-orange-500 hover:bg-orange-600 transition font-bold text-gray-900"
+          className="px-6 py-2 rounded bg-orange-500 hover:bg-orange-600 transition font-bold text-white"
           disabled={saving}
         >
           {saving ? "Сохраняем..." : "Сохранить"}

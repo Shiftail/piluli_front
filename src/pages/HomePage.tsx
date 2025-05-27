@@ -27,7 +27,7 @@ export default function HomePage() {
         </motion.p>
         <motion.button
           whileHover={{ scale: 1.1 }}
-          onClick={() => navigate("/register")}
+          onClick={() => navigate("/login")}
           className="bg-white text-orange-500 font-semibold py-3 px-6 rounded-full shadow-lg hover:bg-gray-100"
         >
           Присоединиться

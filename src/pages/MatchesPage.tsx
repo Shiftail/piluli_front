@@ -57,6 +57,13 @@ export const MatchListPage = observer(() => {
 
   return (
     <div className="max-w-3xl mx-auto p-4 bg-gray-900 min-h-screen text-orange-500">
+      <button
+        onClick={() => navigate("/map")}
+        className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded transition"
+      >
+        На карту
+      </button>
+
       <h1 className="text-4xl font-extrabold mb-8 text-center">
         Матчи команды: {currentTeam.name}
       </h1>
