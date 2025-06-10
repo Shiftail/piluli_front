@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react-lite";
 import { useStores } from "../../stores/useStores";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Loader2, AlertCircle } from "lucide-react";
 import type { DrugSchedule } from "../../stores/CalendarStore";
 
 const AddScheduleModal = observer(
@@ -16,7 +16,9 @@ const AddScheduleModal = observer(
     ceil_info: Date;
   }) => {
     const { drugStore, calendarStore } = useStores();
-    const [showSuggestions, setShowSuggestions] = useState(true);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [loadingDrugs, setLoadingDrugs] = useState(false);
+    const [drugsError, setDrugsError] = useState<string | null>(null);
     const user = JSON.parse(sessionStorage.getItem("user") || "{}");
     const userTimeZoneOffset = (user?.time_zone || 0) * 60; // в минутах
 
@@ -78,8 +80,26 @@ const AddScheduleModal = observer(
     };
 
     useEffect(() => {
-      drugStore.fetchDrugs();
-    }, [drugStore]);
+      const loadDrugs = async () => {
+        try {
+          setLoadingDrugs(true);
+          setDrugsError(null);
+          await drugStore.fetchDrugs();
+        } catch (error) {
+          console.error("Ошибка при загрузке списка лекарств:", error);
+          setDrugsError(
+            "Не удалось загрузить список лекарств. Попробуйте позже.",
+          );
+        } finally {
+          setLoadingDrugs(false);
+        }
+      };
+
+      if (show) {
+        loadDrugs();
+      }
+    }, [show, drugStore]);
+
     return (
       <AnimatePresence>
         {show && (
@@ -111,31 +131,43 @@ const AddScheduleModal = observer(
                   />
                   {showSuggestions && form.name_drug && (
                     <ul className="absolute top-full mt-1 w-full bg-white border border-gray-300 rounded shadow z-10 max-h-48 overflow-y-auto">
-                      {drugStore.drugs
-                        .filter((drug) =>
-                          drug.name
-                            .toLowerCase()
-                            .includes(form.name_drug.toLowerCase()),
-                        )
-                        .map((drug) => (
-                          <li
-                            key={drug.id}
-                            className="px-3 py-2 hover:bg-blue-100 cursor-pointer"
-                            onClick={() => {
-                              setForm({
-                                ...form,
-                                name_drug: drug.name,
-                                dosage: drug.dosage,
-                                frequency: drug.frequency,
-                                interval: drug.interval,
-                                description: drug.description,
-                              });
-                              setShowSuggestions(false);
-                            }}
-                          >
-                            {drug.name}
-                          </li>
-                        ))}
+                      {loadingDrugs ? (
+                        <li className="px-3 py-2 text-gray-500 flex items-center justify-center">
+                          <Loader2 className="animate-spin mr-2" size={16} />
+                          Загрузка...
+                        </li>
+                      ) : drugsError ? (
+                        <li className="px-3 py-2 text-red-500 flex items-center">
+                          <AlertCircle className="mr-2" size={16} />
+                          {drugsError}
+                        </li>
+                      ) : (
+                        (Array.isArray(drugStore.drugs) ? drugStore.drugs : [])
+                          .filter((drug) =>
+                            drug?.name
+                              ?.toLowerCase()
+                              .includes(form.name_drug.toLowerCase()),
+                          )
+                          .map((drug) => (
+                            <li
+                              key={drug.id}
+                              className="px-3 py-2 hover:bg-blue-100 cursor-pointer"
+                              onClick={() => {
+                                setForm({
+                                  ...form,
+                                  name_drug: drug.name,
+                                  dosage: drug.dosage,
+                                  frequency: drug.frequency,
+                                  interval: drug.interval,
+                                  description: drug.description,
+                                });
+                                setShowSuggestions(false);
+                              }}
+                            >
+                              {drug.name}
+                            </li>
+                          ))
+                      )}
                     </ul>
                   )}
                 </div>
