@@ -51,22 +51,46 @@ const CalendarPage = observer(() => {
   }, [calendarStore, currentView, isManualView]);
 
   const events = calendarStore.events.map((event) => {
-    // Добавляем 3 часа (в миллисекундах) к датам
-    const adjustedStart = new Date(
-      new Date(event.start_date).getTime() + 3 * 60 * 60 * 1000,
-    );
-    const adjustedEnd = new Date(
-      new Date(event.end_date).getTime() + 3 * 60 * 60 * 1000,
-    );
+    try {
+      // Проверяем, что даты существуют и являются валидными
+      const startDate = event.start_date
+        ? new Date(event.start_date)
+        : new Date();
+      const endDate = event.end_date
+        ? new Date(event.end_date)
+        : new Date(startDate.getTime() + 3600000); // +1 час если end_date нет
 
-    return {
-      id: String(event.id),
-      title: event.title,
-      start: adjustedStart.toISOString(),
-      end: adjustedEnd.toISOString(),
-      backgroundColor: event.backgroundColor || undefined,
-      dosage: event.dosage,
-    };
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        console.error("Invalid date in event:", event);
+        throw new Error("Invalid date format");
+      }
+
+      // Добавляем 3 часа к датам
+      const adjustedStart = new Date(startDate.getTime() + 3 * 60 * 60 * 1000);
+      const adjustedEnd = new Date(endDate.getTime() + 3 * 60 * 60 * 1000);
+
+      return {
+        id: String(event.id),
+        title: event.title || "Без названия",
+        start: adjustedStart.toISOString(),
+        end: adjustedEnd.toISOString(),
+        backgroundColor: event.backgroundColor || undefined,
+        dosage: event.dosage || 0,
+      };
+    } catch (error) {
+      console.error("Error processing event:", event, error);
+      // Возвращаем fallback событие в случае ошибки
+      const now = new Date();
+      const fallbackDate = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+      return {
+        id: String(event.id || Math.random().toString(36).substr(2, 9)),
+        title: "Ошибка загрузки",
+        start: fallbackDate.toISOString(),
+        end: new Date(fallbackDate.getTime() + 3600000).toISOString(),
+        backgroundColor: "#ff0000",
+        dosage: 0,
+      };
+    }
   });
 
   const animateCalendarRefresh = () => {
