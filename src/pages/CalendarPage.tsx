@@ -27,7 +27,7 @@ const CalendarPage = observer(() => {
   const [showModal, setShowModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isManualView, setIsManualView] = useState(false);
-  const [direction, setDirection] = useState<"left" | "right">("right"); // прокрутка календаря по времени(пу-пу-пу)
+  const [direction, setDirection] = useState<"left" | "right">("right");
   const [calendarKey, setCalendarKey] = useState(0);
   const [showCalendar, setShowCalendar] = useState(true);
 
@@ -35,7 +35,7 @@ const CalendarPage = observer(() => {
   const [animating, setAnimating] = useState(false);
 
   useEffect(() => {
-    setLoading(false); // Убери после fetchEvents, если подключишь
+    setLoading(false);
     const handleResize = () => {
       if (isManualView) return;
       const newView = getResponsiveView(window.innerWidth);
@@ -60,35 +60,47 @@ const CalendarPage = observer(() => {
   }));
 
   const animateCalendarRefresh = () => {
-    setShowCalendar(false); // запускаем exit-анимацию
+    setShowCalendar(false);
     setTimeout(() => {
-      setCalendarKey((prev) => prev + 1); // меняем key
-      setShowCalendar(true); // рендерим снова → с entry-анимацией
-    }, 300); // должно совпадать с duration exit-анимации
+      setCalendarKey((prev) => prev + 1);
+      setShowCalendar(true);
+    }, 300);
   };
 
-  const gotoWeek = (offset: number) => {
-    const calendarApi = calendarRef.current?.getApi();
-    if (!calendarApi || animating) return;
+  // Исправленная функция навигации
+  const navigateCalendar = (offset: number) => {
+    if (animating) return;
 
     const current = new Date(visibleDate);
     const next = new Date(current);
 
     if (offset === 0) {
+      // Переход на сегодня
       next.setTime(new Date().getTime());
     } else {
-      next.setDate(current.getDate() + offset * 7);
+      // Навигация в зависимости от текущего вида
+      if (currentView === "dayGridMonth") {
+        // Для месячного вида - переходим на месяц вперед/назад
+        next.setMonth(current.getMonth() + offset);
+      } else if (currentView === "listWeek" || currentView.includes("Week")) {
+        // Для недельного вида - переходим на неделю вперед/назад
+        next.setDate(current.getDate() + offset * 7);
+      } else {
+        // Для дневного вида - переходим на день вперед/назад
+        next.setDate(current.getDate() + offset);
+      }
     }
 
     setDirection(offset < 0 ? "left" : "right");
     setAnimating(true);
 
-    setVisibleDate(undefined as any); // режет текущий календарь
+    setShowCalendar(false);
 
     setTimeout(() => {
       setVisibleDate(next);
+      setShowCalendar(true);
       setAnimating(false);
-    }, 300); //  `transition.duration`
+    }, 300);
   };
 
   const handleViewChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -102,6 +114,20 @@ const CalendarPage = observer(() => {
     }
   };
 
+  // Функция для получения текста кнопок в зависимости от вида
+  const getNavigationLabels = () => {
+    switch (currentView) {
+      case "dayGridMonth":
+        return { prev: "← Предыдущий месяц", next: "Следующий месяц →" };
+      case "listWeek":
+        return { prev: "← Предыдущая неделя", next: "Следующая неделя →" };
+      default:
+        return { prev: "← Назад", next: "Вперёд →" };
+    }
+  };
+
+  const navLabels = getNavigationLabels();
+
   return (
     <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 min-h-[400px] overflow-hidden">
       {loading ? (
@@ -110,27 +136,29 @@ const CalendarPage = observer(() => {
         </div>
       ) : (
         <>
-          {/* тулик  туда-сюда*/}
           <div className="flex flex-col items-center gap-6 mb-6">
-            {/* Навигация по неделям */}
+            {/* Навигация */}
             <div className="flex gap-3">
               <button
-                className="px-4 py-2 bg-white border border-gray-300 rounded-xl shadow-sm hover:bg-gray-100 active:scale-95 transition flex items-center gap-1 text-gray-700"
-                onClick={() => gotoWeek(-1)}
+                className="px-4 py-2 bg-white border border-gray-300 rounded-xl shadow-sm hover:bg-gray-100 active:scale-95 transition flex items-center gap-1 text-gray-700 disabled:opacity-50"
+                onClick={() => navigateCalendar(-1)}
+                disabled={animating}
               >
-                ← Назад
+                {navLabels.prev}
               </button>
               <button
-                className="px-4 py-2   bg-green-300 text-white rounded-xl shadow-sm hover:bg-blue-600 active:scale-95 transition font-semibold"
-                onClick={() => gotoWeek(0)}
+                className="px-4 py-2 bg-green-300 text-white rounded-xl shadow-sm hover:bg-green-400 active:scale-95 transition font-semibold disabled:opacity-50"
+                onClick={() => navigateCalendar(0)}
+                disabled={animating}
               >
                 Сегодня
               </button>
               <button
-                className="px-4 py-2 bg-white border border-gray-300 rounded-xl shadow-sm hover:bg-gray-100 active:scale-95 transition flex items-center gap-1 text-gray-700"
-                onClick={() => gotoWeek(1)}
+                className="px-4 py-2 bg-white border border-gray-300 rounded-xl shadow-sm hover:bg-gray-100 active:scale-95 transition flex items-center gap-1 text-gray-700 disabled:opacity-50"
+                onClick={() => navigateCalendar(1)}
+                disabled={animating}
               >
-                Вперёд →
+                {navLabels.next}
               </button>
             </div>
 
@@ -161,7 +189,7 @@ const CalendarPage = observer(() => {
           <AnimatePresence mode="wait">
             {showCalendar && visibleDate && (
               <motion.div
-                key={visibleDate.toISOString()}
+                key={`${visibleDate.toISOString()}-${currentView}`}
                 initial={{ opacity: 0, x: direction === "right" ? 100 : -100 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: direction === "right" ? -100 : 100 }}
@@ -210,8 +238,8 @@ const CalendarPage = observer(() => {
                     }
                   }}
                   dateClick={(info) => {
-                    setSelectedDate(new Date(info.dateStr)); // сохраняем выбранную дату
-                    setShowModal(true); // показываем модалку
+                    setSelectedDate(new Date(info.dateStr));
+                    setShowModal(true);
                   }}
                   dayMaxEvents={3}
                   timeZone="local"
@@ -223,7 +251,6 @@ const CalendarPage = observer(() => {
             )}
           </AnimatePresence>
 
-          {/* 👇 модалка добавления курса */}
           {showModal && selectedDate && (
             <AddScheduleModal
               show={showModal}
