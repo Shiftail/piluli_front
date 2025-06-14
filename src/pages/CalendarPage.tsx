@@ -51,14 +51,20 @@ const CalendarPage = observer(() => {
   }, [calendarStore, currentView, isManualView]);
 
   const events = calendarStore.events.map((event) => {
+    // Добавляем 3 часа (в миллисекундах) к датам
+    const adjustedStart = new Date(
+      new Date(event.start_date).getTime() + 3 * 60 * 60 * 1000,
+    );
+    const adjustedEnd = new Date(
+      new Date(event.end_date).getTime() + 3 * 60 * 60 * 1000,
+    );
+
     return {
       id: String(event.id),
       title: event.title,
-      start: event.start_date,
-      end: event.end_date,
-      backgroundColor: event.backgroundColor
-        ? event.backgroundColor
-        : undefined,
+      start: adjustedStart.toISOString(),
+      end: adjustedEnd.toISOString(),
+      backgroundColor: event.backgroundColor || undefined,
       dosage: event.dosage,
     };
   });
