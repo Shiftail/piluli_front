@@ -105,26 +105,13 @@ class CalendarStore {
   async AddScheduleEvent(event: DrugSchedule) {
     try {
       const user = JSON.parse(sessionStorage.getItem("user") || "{}");
-      const userTimeZone = user?.time_zone || 0;
-      const convertFromUserTimeZone = (date: string): string => {
-        const userOffset = userTimeZone * 60;
-        const userDate = new Date(date);
-        userDate.setMinutes(userDate.getMinutes() - userOffset);
-        return userDate.toISOString();
-      };
-      const adjustedEvent = {
-        ...event,
-        start_datetime: convertFromUserTimeZone(event.start_datetime),
-        end_datetime: convertFromUserTimeZone(event.end_datetime),
-      };
-
       const response = await fetch(`${baseURL}/schedules`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${this.authStore.access_token}`,
         },
-        body: JSON.stringify({ ...adjustedEvent, user_id: user.id }),
+        body: JSON.stringify({ ...event, user_id: user.id }),
       });
 
       if (response.ok) {

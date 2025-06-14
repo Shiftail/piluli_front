@@ -50,14 +50,18 @@ const CalendarPage = observer(() => {
     return () => window.removeEventListener("resize", handleResize);
   }, [calendarStore, currentView, isManualView]);
 
-  const events = calendarStore.events.map((event) => ({
-    id: String(event.id),
-    title: event.title,
-    start: event.start_date,
-    end: event.end_date,
-    backgroundColor: event.backgroundColor ? event.backgroundColor : undefined,
-    dosage: event.dosage,
-  }));
+  const events = calendarStore.events.map((event) => {
+    return {
+      id: String(event.id),
+      title: event.title,
+      start: event.start_date,
+      end: event.end_date,
+      backgroundColor: event.backgroundColor
+        ? event.backgroundColor
+        : undefined,
+      dosage: event.dosage,
+    };
+  });
 
   const animateCalendarRefresh = () => {
     setShowCalendar(false);
@@ -175,7 +179,12 @@ const CalendarPage = observer(() => {
             <div>
               <button
                 onClick={() => {
-                  setSelectedDate(new Date());
+                  const now = new Date(); // Текущая дата и время
+                  const futureDate = new Date(
+                    now.getTime() + 3 * 60 * 60 * 1000,
+                  ); // Добавляем 3 часа
+
+                  setSelectedDate(futureDate);
                   setShowModal(true);
                 }}
                 className="flex items-center gap-2 px-5 py-2 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all transform hover:scale-105"
@@ -228,9 +237,7 @@ const CalendarPage = observer(() => {
                         alert(
                           `Препарат: ${
                             info.event.title
-                          }\nВремя приема: ${info.event.start
-                            ?.toISOString()
-                            .slice(11, 16)}\nДозировка: ${
+                          }\nВремя приема: ${info.event.start?.getHours()}:${info.event.start?.getMinutes()}\nДозировка: ${
                             info.event.extendedProps.dosage
                           } мг`,
                         );
@@ -256,6 +263,7 @@ const CalendarPage = observer(() => {
               show={showModal}
               onClose={() => setShowModal(false)}
               ceil_info={selectedDate}
+              from_button={false}
             />
           )}
         </>

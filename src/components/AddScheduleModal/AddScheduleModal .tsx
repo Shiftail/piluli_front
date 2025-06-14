@@ -10,29 +10,20 @@ const AddScheduleModal = observer(
     show,
     onClose,
     ceil_info,
+    from_button,
   }: {
     show: boolean;
     onClose: () => void;
     ceil_info: Date;
+    from_button: boolean;
   }) => {
     const { drugStore, calendarStore } = useStores();
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [loadingDrugs, setLoadingDrugs] = useState(false);
     const [drugsError, setDrugsError] = useState<string | null>(null);
-    const user = JSON.parse(sessionStorage.getItem("user") || "{}");
-    const userTimeZoneOffset = (user?.time_zone || 0) * 60; // в минутах
 
-    const toUtcISOString = (date: Date): string => {
-      return new Date(
-        date.getTime() - userTimeZoneOffset * 60000,
-      ).toISOString();
-    };
-
-    const fromUtcToLocalDate = (utcString: string): Date => {
-      const date = new Date(utcString);
-      date.setMinutes(date.getMinutes() + userTimeZoneOffset);
-      return date;
-    };
+    const userTimeoffset =
+      JSON.parse(sessionStorage.getItem("user") || {}) || 0;
 
     const [form, setForm] = useState<DrugSchedule>({
       name_drug: "",
@@ -48,32 +39,63 @@ const AddScheduleModal = observer(
     const [preNotifyHours, setPreNotifyHours] = useState<number>(0);
 
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const localDate = new Date(e.target.value);
       setForm({
         ...form,
-        start_datetime: fromUtcToLocalDate(localDate.toString()).toString(),
+        start_datetime: e.target.value,
         start_schedule: e.target.value.slice(11, 16), // безопасно получаем HH:mm
       });
     };
     const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const localDate = new Date(e.target.value);
-      const utcDate = toUtcISOString(localDate);
       setForm({
         ...form,
-        end_datetime: utcDate, // Конвертируем только end_datetime
+        end_datetime: e.target.value, // Конвертируем только end_datetime
       });
+    };
+
+    const adjustToUTC = (dateStr: string, hoursDiff: number) => {
+      const date = new Date(dateStr);
+      return new Date(date.getTime() + 0 * 60 * 60 * 1000).toISOString();
     };
 
     const handleSubmit = async () => {
       try {
+        // Функция для вычитания 3 часов из времени в формате HH:mm
+        const subtractHoursFromTime = (
+          timeString: string,
+          hoursToSubtract: number,
+        ) => {
+          const [hours, minutes] = timeString.split(":").map(Number);
+          let totalMinutes = hours * 60 + minutes;
+          totalMinutes -= hoursToSubtract * 60;
+
+          // Обработка перехода через полночь
+          if (totalMinutes < 0) {
+            totalMinutes += 24 * 60;
+          }
+
+          const newHours = Math.floor(totalMinutes / 60) % 24;
+          const newMinutes = totalMinutes % 60;
+
+          return `${String(newHours).padStart(2, "0")}:${String(
+            newMinutes,
+          ).padStart(2, "0")}`;
+        };
+
+        // Вычитаем 3 часа из start_schedule
+        const adjustedStartSchedule = form.start_schedule
+          ? subtractHoursFromTime(form.start_schedule, 3)
+          : "";
+
         const payload = {
           ...form,
-          start_datetime: toUtcISOString(new Date(form.start_datetime)),
-          end_datetime: toUtcISOString(new Date(form.end_datetime)),
+          start_datetime: adjustToUTC(form.start_datetime, 3),
+          end_datetime: adjustToUTC(form.end_datetime, 3),
+          start_schedule: adjustedStartSchedule, // Используем скорректированное время
         };
+
         await calendarStore.AddScheduleEvent(payload);
         await calendarStore.fetchEvents();
-        onClose(); // Закрыть модальное окно после отправки данных
+        onClose();
       } catch (e) {
         alert("Ошибка при добавлении курса приёма" + JSON.stringify(e));
       }
@@ -238,9 +260,7 @@ const AddScheduleModal = observer(
                   <input
                     type="datetime-local"
                     className="input"
-                    value={fromUtcToLocalDate(form.start_datetime)
-                      .toISOString()
-                      .slice(0, 16)}
+                    value={form.start_datetime.slice(0, 16)}
                     onChange={handleStartDateChange}
                   />
                 </div>
@@ -277,9 +297,7 @@ const AddScheduleModal = observer(
                   <input
                     type="datetime-local"
                     className="input"
-                    value={fromUtcToLocalDate(form.end_datetime)
-                      .toISOString()
-                      .slice(0, 16)}
+                    value={form.end_datetime.slice(0, 16)}
                     onChange={handleEndDateChange}
                   />
                 </div>
