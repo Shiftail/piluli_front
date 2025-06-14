@@ -10,20 +10,15 @@ const AddScheduleModal = observer(
     show,
     onClose,
     ceil_info,
-    from_button,
   }: {
     show: boolean;
     onClose: () => void;
     ceil_info: Date;
-    from_button: boolean;
   }) => {
     const { drugStore, calendarStore } = useStores();
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [loadingDrugs, setLoadingDrugs] = useState(false);
     const [drugsError, setDrugsError] = useState<string | null>(null);
-
-    const userTimeoffset =
-      JSON.parse(sessionStorage.getItem("user") || {}) || 0;
 
     const [form, setForm] = useState<DrugSchedule>({
       name_drug: "",
@@ -52,7 +47,7 @@ const AddScheduleModal = observer(
       });
     };
 
-    const adjustToUTC = (dateStr: string, hoursDiff: number) => {
+    const adjustToUTC = (dateStr: string) => {
       const date = new Date(dateStr);
       return new Date(date.getTime() + 0 * 60 * 60 * 1000).toISOString();
     };
@@ -88,8 +83,8 @@ const AddScheduleModal = observer(
 
         const payload = {
           ...form,
-          start_datetime: adjustToUTC(form.start_datetime, 3),
-          end_datetime: adjustToUTC(form.end_datetime, 3),
+          start_datetime: adjustToUTC(form.start_datetime),
+          end_datetime: adjustToUTC(form.end_datetime),
           start_schedule: adjustedStartSchedule, // Используем скорректированное время
         };
 

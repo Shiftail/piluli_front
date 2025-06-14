@@ -263,7 +263,6 @@ const CalendarPage = observer(() => {
               show={showModal}
               onClose={() => setShowModal(false)}
               ceil_info={selectedDate}
-              from_button={false}
             />
           )}
         </>
